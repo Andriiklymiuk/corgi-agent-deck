@@ -19,7 +19,7 @@ interface GlobalSettings {
 	talkChord?: string;
 	talkPanelChord?: string;
 	talkPanelSend?: string;
-	talkPanelSendDelayMs?: number;
+	talkPanelSendDelayMs?: string;
 	[key: string]: string | undefined;
 }
 
