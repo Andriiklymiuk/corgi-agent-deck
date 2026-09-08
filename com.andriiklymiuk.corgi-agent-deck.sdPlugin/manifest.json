@@ -1,11 +1,11 @@
 {
-	"Name": "Agent Deck",
+	"Name": "Corgi Agent Deck",
 	"Version": "0.1.0.0",
 	"Author": "Andrii Klymiuk",
 	"Actions": [
 		{
 			"Name": "Session",
-			"UUID": "com.andriiklymiuk.agent-deck.slot",
+			"UUID": "com.andriiklymiuk.corgi-agent-deck.slot",
 			"Icon": "imgs/actions/slot/icon",
 			"Tooltip": "One Claude Code session per key: press to focus its window, long-press to pin. Drop as many as you have keys.",
 			"PropertyInspectorPath": "ui/slot.html",
@@ -22,7 +22,7 @@
 		},
 		{
 			"Name": "Talk",
-			"UUID": "com.andriiklymiuk.agent-deck.talk",
+			"UUID": "com.andriiklymiuk.corgi-agent-deck.talk",
 			"Icon": "imgs/actions/slot/icon",
 			"Tooltip": "Dictate into the session in front: press to talk, press again to send. A terminal session needs /voice tap in Claude Code and the chord bound (default ctrl+y); the Claude Code panel takes cmd+d.",
 			"PropertyInspectorPath": "ui/slot.html",
@@ -38,7 +38,7 @@
 			"UserTitleEnabled": false
 		}
 	],
-	"Category": "Agent Deck",
+	"Category": "Corgi Agent Deck",
 	"CategoryIcon": "imgs/plugin/category-icon",
 	"CodePath": "bin/plugin.js",
 	"Description": "Every Claude Code session on this Mac on its own key: working, needs you, done. Press to focus the window and terminal tab; long-press to pin. Powered by corgi agent.",
@@ -57,5 +57,5 @@
 		"Version": "24",
 		"Debug": "enabled"
 	},
-	"UUID": "com.andriiklymiuk.agent-deck"
+	"UUID": "com.andriiklymiuk.corgi-agent-deck"
 }

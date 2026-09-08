@@ -7,7 +7,7 @@ import type { Board, Session } from "../corgi/types";
 import { renderTalkKey, type TalkState } from "../render/key";
 import { defaultChord, defaultPanelChord, keystrokeCommand } from "../talk/chord";
 
-export const talkUUID = "com.andriiklymiuk.agent-deck.talk";
+export const talkUUID = "com.andriiklymiuk.corgi-agent-deck.talk";
 
 /** How long a focus may take before the chord is not sent. */
 const focusBudgetMs = 1500;

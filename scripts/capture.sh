@@ -14,7 +14,7 @@ magick -delay 55 -loop 0 docs/media/frames/mini-*.png -resize 960x540 -layers Op
 for v in mk2 mini talk states; do
   "$CHROME" --headless=new --hide-scrollbars --disable-gpu --window-size=1920,960 --screenshot="$PWD/docs/media/store/$v.png" "file://$PWD/docs/media/store/$v.html" >/dev/null 2>&1
 done
-magick com.andriiklymiuk.agent-deck.sdPlugin/imgs/plugin/marketplace@2x.png -resize 288x288 docs/media/store/icon-288.png
+magick com.andriiklymiuk.corgi-agent-deck.sdPlugin/imgs/plugin/marketplace@2x.png -resize 288x288 docs/media/store/icon-288.png
 if command -v ffmpeg >/dev/null; then
   ffmpeg -y -loglevel error -framerate 2 -i docs/media/frames/mini-%d.png -vf "scale=1920:1080,format=yuv420p" -t 8 docs/media/store/pulse.mp4
 fi

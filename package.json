@@ -1,15 +1,15 @@
 {
-    "name": "agent-deck",
+    "name": "corgi-agent-deck",
     "version": "0.1.0",
     "private": true,
     "description": "Stream Deck plugin for corgi's Claude Code session board",
     "scripts": {
         "build": "rollup -c",
-        "watch": "rollup -c -w --watch.onEnd=\"streamdeck restart com.andriiklymiuk.agent-deck\"",
+        "watch": "rollup -c -w --watch.onEnd=\"streamdeck restart com.andriiklymiuk.corgi-agent-deck\"",
         "test": "vitest run",
         "typecheck": "tsc --noEmit -p .",
-        "validate": "streamdeck validate com.andriiklymiuk.agent-deck.sdPlugin",
-        "pack": "streamdeck pack com.andriiklymiuk.agent-deck.sdPlugin",
+        "validate": "streamdeck validate com.andriiklymiuk.corgi-agent-deck.sdPlugin",
+        "pack": "streamdeck pack com.andriiklymiuk.corgi-agent-deck.sdPlugin",
         "showcase": "tsx scripts/showcase.ts && scripts/capture.sh"
     },
     "type": "module",

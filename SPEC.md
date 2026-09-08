@@ -1,8 +1,8 @@
-# Agent Deck — implementation spec
+# Corgi Agent Deck — implementation spec
 
 A Stream Deck plugin whose keys are a live view of every Claude Code session on this Mac. Press a key and that session's window and terminal tab come to the front. Long-press to pin. An empty key opens a new session. Nothing to configure per session.
 
-This document is self-contained. Everything the plugin needs from the outside world already exists in **corgi** (`corgi agent track`, corgi ≥ 1.21.32) and the **corgi VS Code extension** (≥ 1.16.7). Agent Deck is a thin renderer: it reads one JSON file and runs a few `corgi agent …` commands. It holds no session state of its own.
+This document is self-contained. Everything the plugin needs from the outside world already exists in **corgi** (`corgi agent track`, corgi ≥ 1.21.32) and the **corgi VS Code extension** (≥ 1.16.7). Corgi Agent Deck is a thin renderer: it reads one JSON file and runs a few `corgi agent …` commands. It holds no session state of its own.
 
 ---
 
@@ -161,7 +161,7 @@ agent-deck/
   CLAUDE.md                                  (conventions; points here)
   SPEC.md                                    (this file)
   package.json                               (from `streamdeck create`; scripts: build, watch, test, pack)
-  com.andriiklymiuk.agent-deck.sdPlugin/
+  com.andriiklymiuk.corgi-agent-deck.sdPlugin/
     manifest.json                            SDKVersion 2, Controllers ["Keypad"], OS mac (MinimumVersion "12"),
                                              later windows; Nodejs.Version per the CLI's scaffold
     bin/plugin.js                            rollup output (scaffold default)
@@ -182,7 +182,7 @@ agent-deck/
     sessions.json                            a real board captured from corgi (`corgi agent sessions --json`)
 ```
 
-One action UUID for the board: `com.andriiklymiuk.agent-deck.slot`. Six copies dragged onto a Mini in any order make a board.
+One action UUID for the board: `com.andriiklymiuk.corgi-agent-deck.slot`. Six copies dragged onto a Mini in any order make a board.
 
 ---
 
@@ -262,7 +262,7 @@ Canvas 144×144 (Mini keys are 80×80; Stream Deck scales). Exact layout:
 
 ### 4.5 `actions/slot.ts`
 
-`SingletonAction` for `com.andriiklymiuk.agent-deck.slot`:
+`SingletonAction` for `com.andriiklymiuk.corgi-agent-deck.slot`:
 
 - `onWillAppear`: `layout.set(device, action, coordinates)`, redraw all keys on that device.
 - `onWillDisappear`: `layout.remove`, redraw.
@@ -299,7 +299,7 @@ Use `streamDeck.logger`. Info on: resolved corgi path, board path, board size sy
 
 ## 7. Talk key (optional, milestone 7)
 
-A second action, `com.andriiklymiuk.agent-deck.talk`: press to dictate into the session in front (corgi's `frontSession`: the session in the window in front, in its active terminal tab or its panel; else the key you last pressed; else the one that needs you, when exactly one does; else the one that moved last), press again to send. Claude Code's own dictation does the work.
+A second action, `com.andriiklymiuk.corgi-agent-deck.talk`: press to dictate into the session in front (corgi's `frontSession`: the session in the window in front, in its active terminal tab or its panel; else the key you last pressed; else the one that needs you, when exactly one does; else the one that moved last), press again to send. Claude Code's own dictation does the work.
 
 - **Claude Code side** (user setup, documented in README): `/voice tap` once (persists), and in `~/.claude/keybindings.json` bind `voice:pushToTalk` to a chord no terminal claims — `ctrl+y` by default. Tap mode is required: a synthesized keystroke has no key-repeat, so hold mode cannot be triggered from a deck. Needs a Claude.ai login and microphone permission for the terminal app.
 - **Press**: `corgi agent focus <sessionId>`, wait until the next board shows `focusAt` newer than the press with no `focusError` (cap 1.5 s), then `osascript -e 'tell application "System Events" to keystroke "y" using control down'`. Sending keystrokes needs Accessibility for the Stream Deck app (its built-in Hotkey action already uses it).
@@ -340,7 +340,7 @@ A second action, `com.andriiklymiuk.agent-deck.talk`: press to dictate into the 
 
 ## 10. Packaging
 
-- `streamdeck pack com.andriiklymiuk.agent-deck.sdPlugin` produces the `.streamDeckPlugin`.
+- `streamdeck pack com.andriiklymiuk.corgi-agent-deck.sdPlugin` produces the `.streamDeckPlugin`.
 - GitHub Actions on tag `v*`: `npm ci`, `npm test`, `npm run build`, pack, attach to the release.
 - README: what it shows, the three-line corgi setup (`brew install andriiklymiuk/homebrew-tools/corgi`, `corgi agent install`, `corgi agent track enable`), install the corgi VS Code extension, drop six `Slot` keys on the deck, optional talk-key setup.
 

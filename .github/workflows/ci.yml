@@ -18,7 +18,7 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
-      - run: npx streamdeck validate com.andriiklymiuk.agent-deck.sdPlugin
+      - run: npx streamdeck validate com.andriiklymiuk.corgi-agent-deck.sdPlugin
 
   release:
     # A release is a version bump on main: when package.json names a version
@@ -53,7 +53,7 @@ jobs:
       - if: steps.version.outputs.new == 'true'
         run: npm run build
       - if: steps.version.outputs.new == 'true'
-        run: npx streamdeck pack com.andriiklymiuk.agent-deck.sdPlugin --force --version "${{ steps.version.outputs.version }}.0"
+        run: npx streamdeck pack com.andriiklymiuk.corgi-agent-deck.sdPlugin --force --version "${{ steps.version.outputs.version }}.0"
       - if: steps.version.outputs.new == 'true'
         name: Changelog since the previous tag
         run: |

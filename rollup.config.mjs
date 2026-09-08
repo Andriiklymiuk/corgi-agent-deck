@@ -6,7 +6,7 @@ import path from "node:path";
 import url from "node:url";
 
 const isWatching = !!process.env.ROLLUP_WATCH;
-const sdPlugin = "com.andriiklymiuk.agent-deck.sdPlugin";
+const sdPlugin = "com.andriiklymiuk.corgi-agent-deck.sdPlugin";
 
 /**
  * @type {import('rollup').RollupOptions}

@@ -7,7 +7,7 @@ import type { Corgi } from "../corgi/cli";
 import type { Board, Slot, Status } from "../corgi/types";
 import { type Frame, KeyCache, type KeyInput, offKey } from "../render/key";
 
-export const slotUUID = "com.andriiklymiuk.agent-deck.slot";
+export const slotUUID = "com.andriiklymiuk.corgi-agent-deck.slot";
 
 /** Hold this long for a long press (pin, previous page, rescan). */
 export const longPressMs = 600;

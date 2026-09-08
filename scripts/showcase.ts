@@ -45,7 +45,7 @@ const key = (name: string, frame: number): string => `<div class="key"><img src=
 
 type Copy = { title: string; text: string; legend?: boolean };
 const copies: Record<string, Copy> = {
-	mk2: { title: "Agent Deck", text: "Every Claude Code session on your Mac on its own key. Press to jump to its window and terminal tab. Hold to pin. Talk to dictate into the one in front of you.", legend: true },
+	mk2: { title: "Corgi Agent Deck", text: "Every Claude Code session on your Mac on its own key. Press to jump to its window and terminal tab. Hold to pin. Talk to dictate into the one in front of you.", legend: true },
 	mini: { title: "Fits a Mini", text: "Five sessions and a Talk key. When more sessions run than keys, a +N key pages through the rest and turns red when one of them needs you.", legend: true },
 	talk: { title: "Talk", text: "Press once, speak, press again to send. It goes to the session in the window you are looking at — a terminal or the Claude Code panel — with no key press first.", legend: false },
 	states: { title: "Six states, one glance", text: "Amber while it works. Red and pulsing when it needs you: a permission prompt, a question, an API failure. Green when done. Blue with the reset time when the account hit its limit. Grey when idle or closed.", legend: true },
@@ -60,7 +60,7 @@ const html = (view: string, frame: number, elapsedShift: number, height = 1080):
 	const names = view === "mini" ? mini : view === "talk" ? talk : view === "states" ? states : mk2;
 	const cols = view === "mk2" ? 5 : 3;
 	const copy = copies[view] ?? copies.mk2;
-	return `<!doctype html><meta charset="utf-8"><title>Agent Deck</title>
+	return `<!doctype html><meta charset="utf-8"><title>Corgi Agent Deck</title>
 <style>
   html,body{margin:0;background:#0b0d12;width:1920px;height:${height}px;overflow:hidden;font-family:-apple-system,Inter,Helvetica,Arial,sans-serif;color:#e8e8e8}
   .stage{position:relative;width:1920px;height:${height}px;display:flex;align-items:center;justify-content:center;gap:80px;background:radial-gradient(1200px 700px at 50% 40%,#171a22 0%,#0b0d12 70%)}

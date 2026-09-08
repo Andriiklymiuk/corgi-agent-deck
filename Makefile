@@ -1,4 +1,4 @@
-PLUGIN := com.andriiklymiuk.agent-deck
+PLUGIN := com.andriiklymiuk.corgi-agent-deck
 PLUGIN_DIR := $(PLUGIN).sdPlugin
 
 .PHONY: install build restart watch test validate pack link dev

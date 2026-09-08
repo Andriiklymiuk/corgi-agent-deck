@@ -1,4 +1,4 @@
-# Agent Deck
+# Corgi Agent Deck
 
 Stream Deck plugin that draws corgi's Claude Code session board and turns key presses into `corgi agent …` commands. The full spec is `SPEC.md`; read it before changing anything.
 

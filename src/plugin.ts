@@ -8,7 +8,7 @@ import { Corgi } from "./corgi/cli";
 import { defaultChord, defaultPanelChord } from "./talk/chord";
 
 /**
- * Agent Deck: corgi's Claude Code session board on keys. corgi tracks the
+ * Corgi Agent Deck: corgi's Claude Code session board on keys. corgi tracks the
  * sessions, keeps the board and does the focusing; this plugin draws
  * sessions.json and turns presses into `corgi agent …` commands. It holds no
  * session state and never starts the daemon.

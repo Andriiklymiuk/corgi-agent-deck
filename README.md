@@ -1,10 +1,10 @@
-# Agent Deck
+# Corgi Agent Deck
 
 Every Claude Code session on your Mac on its own Stream Deck key. Amber while it works, red and pulsing when it needs you, green when it's done. Press a key and that session's window and terminal tab come to the front. Hold to pin. An empty key opens a new session.
 
-Agent Deck draws the board that [corgi](https://github.com/Andriiklymiuk/corgi) keeps (`corgi agent track`) and turns presses into `corgi agent …` commands. It holds no state of its own.
+Corgi Agent Deck draws the board that [corgi](https://github.com/Andriiklymiuk/corgi) keeps (`corgi agent track`) and turns presses into `corgi agent …` commands. It holds no state of its own.
 
-![Agent Deck on a Stream Deck MK.2: working, needs you, done, limit, idle, closed, a +2 pager, empty keys and the Talk key](docs/media/deck-mk2.png)
+![Corgi Agent Deck on a Stream Deck MK.2: working, needs you, done, limit, idle, closed, a +2 pager, empty keys and the Talk key](docs/media/deck-mk2.png)
 
 <p align="center"><img src="docs/media/deck-pulse.gif" width="720" alt="A key that needs you pulses; elapsed times keep counting"></p>
 
@@ -46,16 +46,16 @@ From source:
 ```bash
 npm install && make build
 npx streamdeck dev                                   # once: developer mode
-npx streamdeck link com.andriiklymiuk.agent-deck.sdPlugin
+npx streamdeck link com.andriiklymiuk.corgi-agent-deck.sdPlugin
 ```
 
 Then **quit and reopen the Stream Deck app**: it scans plugins only at start. (`Error: ENOENT … /Plugins` from `link` means the app was never opened; see step 3.)
 
 ### 5. Keys
 
-Stream Deck never places keys for you. In the app, right panel → **Keys** tab (not *Plugins*, that is the store) → scroll to **Agent Deck** → drag **Session** onto a key. Repeat for every key you want (right-click a key → Copy, then Paste on the empty ones). Their order on the deck is their order on the board. Add one **Talk** key if you want dictation.
+Stream Deck never places keys for you. In the app, right panel → **Keys** tab (not *Plugins*, that is the store) → scroll to **Corgi Agent Deck** → drag **Session** onto a key. Repeat for every key you want (right-click a key → Copy, then Paste on the empty ones). Their order on the deck is their order on the board. Add one **Talk** key if you want dictation.
 
-Keys paint within a second. If they stay blank, read `com.andriiklymiuk.agent-deck.sdPlugin/logs/`.
+Keys paint within a second. If they stay blank, read `com.andriiklymiuk.corgi-agent-deck.sdPlugin/logs/`.
 
 ## Keys
 
@@ -118,6 +118,6 @@ Releases: bump `package.json` and push `main`; CI tags it, packs the plugin and 
 
 `npm run showcase` redraws the README pictures (`docs/media/`) from the plugin's own key renderer and screenshots them with Chrome, so they never drift from what the plugin draws.
 
-A code change needs only `make restart`. A `manifest.json` change or a fresh `link` needs the Stream Deck app quit and reopened. Plugin logs: `com.andriiklymiuk.agent-deck.sdPlugin/logs/`; the app's own: `~/Library/Logs/ElgatoStreamDeck/StreamDeck.log`.
+A code change needs only `make restart`. A `manifest.json` change or a fresh `link` needs the Stream Deck app quit and reopened. Plugin logs: `com.andriiklymiuk.corgi-agent-deck.sdPlugin/logs/`; the app's own: `~/Library/Logs/ElgatoStreamDeck/StreamDeck.log`.
 
 `SPEC.md` is the full specification; `CLAUDE.md` the conventions. The contract with corgi is `corgi agent sessions --json`; refresh `fixtures/sessions.json` from it when corgi changes.
