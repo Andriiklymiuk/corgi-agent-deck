@@ -92,7 +92,7 @@ Which session Talk goes to: the one in the editor window in front (its Claude pa
 ## Good to know
 
 - **Terminal sessions beat panel sessions.** A session started with `claude` in an integrated terminal gets its own tab, and a press opens exactly that tab. Sessions in the Claude Code *panel* can only be focused to the window and the panel: Claude Code has no command to pick a chat tab, so two panel sessions in one window land in the same place. The `+` key opens a terminal session for this reason.
-- **A closed panel chat keeps its key.** Closing a Claude Code chat tab does not end its `claude` process, so corgi still sees it (as DONE). Quit the process, or ignore the key; it goes IDLE after 30 minutes quiet.
+- **A closed panel chat leaves the board** once its window's extension (corgi VS Code extension ≥ 1.16.12, corgi ≥ 1.21.36) reports fewer Claude tabs than finished panel sessions. Claude Code keeps the process for *Reopen Closed Session*; the key comes back with the session's next event. The side bar view is not a tab, so a finished session living there is hidden the same way until it speaks again.
 - **Everything is on disk.** `corgi agent sessions --json` is what the plugin draws; `corgi agent doctor` explains a press that went nowhere; `corgi agent focus <key number>` reproduces a press from the shell.
 - **No corgi daemon** → every key reads `corgi OFF`. The plugin never starts it: `corgi agent install`.
 
