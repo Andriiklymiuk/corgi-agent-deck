@@ -9,7 +9,8 @@
         "test": "vitest run",
         "typecheck": "tsc --noEmit -p .",
         "validate": "streamdeck validate com.andriiklymiuk.agent-deck.sdPlugin",
-        "pack": "streamdeck pack com.andriiklymiuk.agent-deck.sdPlugin"
+        "pack": "streamdeck pack com.andriiklymiuk.agent-deck.sdPlugin",
+        "showcase": "tsx scripts/showcase.ts && scripts/capture.sh"
     },
     "type": "module",
     "devDependencies": {
@@ -22,6 +23,7 @@
         "@types/node": "~24.1.0",
         "rollup": "^4.0.2",
         "tslib": "^2.6.2",
+        "tsx": "4.23.13",
         "typescript": "^5.2.2",
         "vitest": "^3.2.4"
     },

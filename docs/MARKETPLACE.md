@@ -37,8 +37,8 @@ release workflow produces the `.streamDeckPlugin`; a person uploads it.
 - **Tagline:** Every Claude Code session on its own key.
 - **Description:** the first two paragraphs of README.md.
 - **Keywords:** claude, claude code, ai, agent, terminal, vs code, corgi
-- **Screenshots:** a Stream Deck Mini or MK.2 with six Session keys in the
-  three colours, one with the Talk key. 1920×1080 PNGs; capture the Stream
-  Deck app's canvas, or photograph the deck.
+- **Screenshots:** `docs/media/deck-mk2.png` and `deck-mini.png` (1920×1080,
+  from `npm run showcase`), plus `deck-pulse.gif` for the listing video slot
+  if Elgato accepts one.
 - **Requirements to state:** macOS 12+, Stream Deck app 7.1+, corgi
   (`brew install andriiklymiuk/homebrew-tools/corgi`), Claude Code.

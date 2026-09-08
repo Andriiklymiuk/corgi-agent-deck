@@ -4,6 +4,10 @@ Every Claude Code session on your Mac on its own Stream Deck key. Amber while it
 
 Agent Deck draws the board that [corgi](https://github.com/Andriiklymiuk/corgi) keeps (`corgi agent track`) and turns presses into `corgi agent …` commands. It holds no state of its own.
 
+![Agent Deck on a Stream Deck MK.2: working, needs you, done, limit, idle, closed, a +2 pager, empty keys and the Talk key](docs/media/deck-mk2.png)
+
+<p align="center"><img src="docs/media/deck-pulse.gif" width="720" alt="A key that needs you pulses; elapsed times keep counting"></p>
+
 ## Setup
 
 Five parts, in this order. Each one is short.
@@ -111,6 +115,8 @@ make dev && make link  # once per machine, then reopen the Stream Deck app
 ```
 
 Releases: bump `package.json` and push `main`; CI tags it, packs the plugin and publishes the `.streamDeckPlugin` on GitHub Releases. Elgato Marketplace submission is manual: see [docs/MARKETPLACE.md](docs/MARKETPLACE.md).
+
+`npm run showcase` redraws the README pictures (`docs/media/`) from the plugin's own key renderer and screenshots them with Chrome, so they never drift from what the plugin draws.
 
 A code change needs only `make restart`. A `manifest.json` change or a fresh `link` needs the Stream Deck app quit and reopened. Plugin logs: `com.andriiklymiuk.agent-deck.sdPlugin/logs/`; the app's own: `~/Library/Logs/ElgatoStreamDeck/StreamDeck.log`.
 
