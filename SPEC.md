@@ -298,7 +298,7 @@ Use `streamDeck.logger`. Info on: resolved corgi path, board path, board size sy
 
 ## 7. Talk key (optional, milestone 7)
 
-A second action, `com.andriiklymiuk.agent-deck.talk`: press to dictate into the session on the key you last focused (or the one that needs you, when exactly one does), press again to send. Claude Code's own dictation does the work.
+A second action, `com.andriiklymiuk.agent-deck.talk`: press to dictate into the session in front (corgi's `frontSession`: the session in the window in front, in its active terminal tab or its panel; else the key you last pressed; else the one that needs you, when exactly one does; else the one that moved last), press again to send. Claude Code's own dictation does the work.
 
 - **Claude Code side** (user setup, documented in README): `/voice tap` once (persists), and in `~/.claude/keybindings.json` bind `voice:pushToTalk` to a chord no terminal claims — `alt+v` by default. Tap mode is required: a synthesized keystroke has no key-repeat, so hold mode cannot be triggered from a deck. Needs a Claude.ai login and microphone permission for the terminal app.
 - **Press**: `corgi agent focus <sessionId>`, wait until the next board shows `focusAt` newer than the press with no `focusError` (cap 1.5 s), then `osascript -e 'tell application "System Events" to keystroke "v" using option down'`. Sending keystrokes needs Accessibility for the Stream Deck app (its built-in Hotkey action already uses it).

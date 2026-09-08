@@ -58,6 +58,8 @@ export interface Window {
 	extHostPid: number;
 	folders?: string[];
 	terminals?: { name: string; shellPid: number }[];
+	focusedAt?: string;
+	activeShellPid?: number;
 	updatedAt: string;
 }
 
@@ -71,6 +73,9 @@ export interface Board {
 	sessions: Session[];
 	windows?: Window[];
 	lastFocusWindow?: string;
+	/** The window in front and the session the user sees in it, as corgi worked it out. */
+	frontWindow?: string;
+	frontSession?: string;
 	notice?: string;
 	noticeAt?: string;
 }
