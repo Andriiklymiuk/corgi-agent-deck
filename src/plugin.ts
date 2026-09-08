@@ -5,7 +5,7 @@ import { sendKeystroke, TalkAction } from "./actions/talk";
 import { Layout } from "./board/layout";
 import { BoardWatcher } from "./board/watcher";
 import { Corgi } from "./corgi/cli";
-import { defaultChord } from "./talk/chord";
+import { defaultChord, defaultPanelChord } from "./talk/chord";
 
 /**
  * Agent Deck: corgi's Claude Code session board on keys. corgi tracks the
@@ -17,6 +17,7 @@ import { defaultChord } from "./talk/chord";
 interface GlobalSettings {
 	corgiPath?: string;
 	talkChord?: string;
+	talkPanelChord?: string;
 	[key: string]: string | undefined;
 }
 
@@ -28,7 +29,8 @@ const layout = new Layout();
 const watcher = new BoardWatcher(corgi);
 const slot = new SlotAction({ layout, watcher, corgi, log });
 let chord = defaultChord;
-const talk = new TalkAction({ watcher, corgi, log, sendKeystroke, lastFocused: () => slot.lastFocused(), chord: () => chord });
+let panelChord = defaultPanelChord;
+const talk = new TalkAction({ watcher, corgi, log, sendKeystroke, lastFocused: () => slot.lastFocused(), chord: () => chord, panelChord: () => panelChord });
 
 streamDeck.actions.registerAction(slot);
 streamDeck.actions.registerAction(talk);
@@ -107,6 +109,7 @@ watcher.on("error", (message) => log.warn(message));
 function applySettings(settings: GlobalSettings): void {
 	corgi.setOverride(settings.corgiPath);
 	chord = settings.talkChord?.trim() || defaultChord;
+	panelChord = settings.talkPanelChord?.trim() || defaultPanelChord;
 }
 
 streamDeck.settings.onDidReceiveGlobalSettings<GlobalSettings>((ev) => {

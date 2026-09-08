@@ -85,7 +85,9 @@ Do both in **every** Claude config dir you run sessions from (`~/.claude-work/ke
 
 Sending the chord needs Accessibility permission for the Stream Deck app. It is not in the list by default: System Settings → Privacy & Security → Accessibility → **+** → `/Applications/Elgato Stream Deck.app`, or press Talk once and accept the prompt macOS shows.
 
-Which session Talk goes to: the one in the editor window in front (its active terminal tab, else its Claude panel), else the key you last pressed, else the only one that needs you, else the one that moved last. The key shows REC optimistically and clears when the session starts working or after Claude Code's two-minute cap.
+Sessions in the Claude Code **panel** need none of that: the panel has its own dictation shortcut (`cmd+d`), and Talk sends that one instead. Change it in the key's settings if Claude Code's changes.
+
+Which session Talk goes to: the one in the editor window in front (its Claude panel when that is the active tab, else its active terminal tab, else its panel), else the key you last pressed, else the only one that needs you, else the one that moved last. The key shows REC optimistically and clears when the session starts working or after Claude Code's two-minute cap.
 
 ## Good to know
 

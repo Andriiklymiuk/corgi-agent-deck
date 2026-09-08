@@ -85,3 +85,5 @@ export function keystrokeScript(chord: string): string | undefined {
 }
 
 export const defaultChord = "ctrl+y";
+/** The Claude Code VS Code panel has its own dictation shortcut. */
+export const defaultPanelChord = "cmd+d";

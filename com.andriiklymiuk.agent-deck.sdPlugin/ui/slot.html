@@ -18,15 +18,19 @@
     <sdpi-item label="Dictation chord">
         <sdpi-textfield global setting="talkChord" placeholder="ctrl+y"></sdpi-textfield>
     </sdpi-item>
+    <sdpi-item label="Panel dictation">
+        <sdpi-textfield global setting="talkPanelChord" placeholder="cmd+d"></sdpi-textfield>
+    </sdpi-item>
     <sdpi-item label="">
         <div style="font-size: 11px; opacity: .8; line-height: 1.5;">
             Every key is one Claude Code session. Press to bring its window and terminal tab forward;
             hold for pin. An empty key opens a new session; the <b>+N</b> key pages through the rest.<br>
             Set up once on this Mac: <code>corgi agent install</code>, then <code>corgi agent track enable</code>,
             and install the corgi VS Code extension for exact tabs.<br>
-            The <b>Talk</b> key presses the dictation chord in the session you last pressed. In Claude Code run
-            <code>/voice tap</code> once and bind <code>voice:pushToTalk</code> to the chord above in
-            <code>~/.claude/keybindings.json</code>; Stream Deck needs Accessibility to send it.
+            The <b>Talk</b> key presses the dictation chord in the session in front of you. For a terminal session
+            run <code>/voice tap</code> once in Claude Code and bind <code>voice:pushToTalk</code> to the chord above in
+            <code>~/.claude/keybindings.json</code>; the Claude Code panel takes its own shortcut (<code>cmd+d</code>).
+            Stream Deck needs Accessibility to send either.
         </div>
     </sdpi-item>
 </body>

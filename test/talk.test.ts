@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
-import { pickSession } from "../src/actions/talk";
+import { chordFor, pickSession } from "../src/actions/talk";
 import type { BoardReport } from "../src/corgi/types";
 import { renderTalkKey } from "../src/render/key";
 import { defaultChord, keystrokeScript, parseChord } from "../src/talk/chord";
@@ -43,6 +43,17 @@ describe("pickSession", () => {
 		expect(pickSession(two, undefined)).toBe(latest);
 		expect(pickSession({ ...bare, sessions: [] }, undefined)).toBeUndefined();
 		expect(pickSession(undefined, web)).toBeUndefined();
+	});
+});
+
+describe("chordFor", () => {
+	it("sends the panel its own shortcut and the terminal the keybindings chord", () => {
+		const terminal = fixture.sessions[0];
+		const panel = { ...terminal, id: "panel-1", host: { ...terminal.host, kind: "vscode-panel" as const } };
+		const board = { ...fixture, sessions: [terminal, panel] };
+		expect(chordFor(board, terminal.id, "ctrl+y", "cmd+d")).toBe("ctrl+y");
+		expect(chordFor(board, panel.id, "ctrl+y", "cmd+d")).toBe("cmd+d");
+		expect(chordFor(undefined, panel.id, "ctrl+y", "cmd+d")).toBe("ctrl+y");
 	});
 });
 

@@ -5,7 +5,7 @@ import type { BoardWatcher } from "../board/watcher";
 import type { Corgi } from "../corgi/cli";
 import type { Board, Session } from "../corgi/types";
 import { renderTalkKey, type TalkState } from "../render/key";
-import { defaultChord, keystrokeScript } from "../talk/chord";
+import { defaultChord, defaultPanelChord, keystrokeScript } from "../talk/chord";
 
 export const talkUUID = "com.andriiklymiuk.agent-deck.talk";
 
@@ -19,7 +19,9 @@ export interface TalkDeps {
 	corgi: Corgi;
 	/** The session the last slot press focused, if any. */
 	lastFocused(): string | undefined;
+	/** The keybindings.json chord for a terminal session, and the panel's own shortcut. */
 	chord(): string;
+	panelChord(): string;
 	sendKeystroke(script: string): Promise<void>;
 	log: { info(msg: string): void; debug(msg: string): void; warn(msg: string): void };
 }
@@ -115,15 +117,16 @@ export class TalkAction extends SingletonAction {
 	}
 
 	private async tap(key: KeyAction, sessionId: string): Promise<boolean> {
-		const script = keystrokeScript(this.deps.chord());
+		const chord = chordFor(this.deps.watcher.current(), sessionId, this.deps.chord(), this.deps.panelChord());
+		const script = keystrokeScript(chord);
 		if (!script) {
-			this.deps.log.warn(`talk: cannot send chord "${this.deps.chord()}"`);
+			this.deps.log.warn(`talk: cannot send chord "${chord}"`);
 			await key.showAlert().catch(() => undefined);
 			return false;
 		}
 		try {
 			await this.deps.sendKeystroke(script);
-			this.deps.log.debug(`talk: sent ${this.deps.chord()} to ${sessionId}`);
+			this.deps.log.debug(`talk: sent ${chord} to ${sessionId}`);
 			return true;
 		} catch (error) {
 			this.deps.log.warn(`talk: keystroke failed (Accessibility for Stream Deck?): ${String((error as Error).message)}`);
@@ -217,6 +220,12 @@ export function pickSession(board: Board | undefined, lastFocused: string | unde
 	return latest?.id;
 }
 
+/** The panel has its own dictation shortcut; a terminal session takes the keybindings.json chord. */
+export function chordFor(board: Board | undefined, sessionId: string, chord: string, panelChord: string): string {
+	const session = board?.sessions.find((s) => s.id === sessionId);
+	return session?.host.kind === "vscode-panel" ? panelChord : chord;
+}
+
 /** Runs an AppleScript through osascript. Needs Accessibility for the Stream Deck app. */
 export function sendKeystroke(script: string): Promise<void> {
 	return new Promise((resolve, reject) => {
@@ -230,4 +239,4 @@ export function sendKeystroke(script: string): Promise<void> {
 	});
 }
 
-export { defaultChord };
+export { defaultChord, defaultPanelChord };
