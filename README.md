@@ -75,13 +75,13 @@ Drag a **Talk** key onto the deck to dictate into the session in front of you (t
 /voice tap
 ```
 
-and in `~/.claude/keybindings.json` bind the chord (default `alt+v`; change it in the key's settings):
+and in `~/.claude/keybindings.json` bind the chord (default `ctrl+y`; change it in the key's settings):
 
 ```json
-{ "bindings": [{ "context": "Chat", "bindings": { "alt+v": "voice:pushToTalk" } }] }
+{ "bindings": [{ "context": "Chat", "bindings": { "ctrl+y": "voice:pushToTalk" } }] }
 ```
 
-Do both in **every** Claude config dir you run sessions from (`~/.claude-work/keybindings.json` and its `settings.json` too). Tap mode is required: a synthesized keystroke has no key-repeat, so hold mode can't be triggered from a deck. Restart running Claude sessions; keybindings load at start.
+Do both in **every** Claude config dir you run sessions from (`~/.claude-work/keybindings.json` and its `settings.json` too). Tap mode is required: a synthesized keystroke has no key-repeat, so hold mode can't be triggered from a deck. Restart running Claude sessions; keybindings load at start. Pick a Ctrl chord: on a Mac, Option+letter types a symbol (`alt+v` is `√`) unless the terminal treats Option as Meta.
 
 Sending the chord needs Accessibility permission for the Stream Deck app. It is not in the list by default: System Settings → Privacy & Security → Accessibility → **+** → `/Applications/Elgato Stream Deck.app`, or press Talk once and accept the prompt macOS shows.
 

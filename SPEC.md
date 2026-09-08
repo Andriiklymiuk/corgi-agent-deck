@@ -278,7 +278,7 @@ One page, global settings, shared by every instance:
 
 - corgi path override (text; blank = automatic) and a read-only line with the resolved path.
 - Daemon state (from the watcher), board size vs. this device's key count.
-- Dictation chord for the talk key (section 7), default `alt+v`.
+- Dictation chord for the talk key (section 7), default `ctrl+y` (a Ctrl chord: macOS types a symbol for Option+letter unless the terminal maps Option to Meta).
 - Link to corgi's docs: `https://github.com/Andriiklymiuk/corgi/blob/main/docs/agent.md` (section "Sessions on a Stream Deck").
 - No per-key settings, by design.
 
@@ -300,8 +300,8 @@ Use `streamDeck.logger`. Info on: resolved corgi path, board path, board size sy
 
 A second action, `com.andriiklymiuk.agent-deck.talk`: press to dictate into the session in front (corgi's `frontSession`: the session in the window in front, in its active terminal tab or its panel; else the key you last pressed; else the one that needs you, when exactly one does; else the one that moved last), press again to send. Claude Code's own dictation does the work.
 
-- **Claude Code side** (user setup, documented in README): `/voice tap` once (persists), and in `~/.claude/keybindings.json` bind `voice:pushToTalk` to a chord no terminal claims — `alt+v` by default. Tap mode is required: a synthesized keystroke has no key-repeat, so hold mode cannot be triggered from a deck. Needs a Claude.ai login and microphone permission for the terminal app.
-- **Press**: `corgi agent focus <sessionId>`, wait until the next board shows `focusAt` newer than the press with no `focusError` (cap 1.5 s), then `osascript -e 'tell application "System Events" to keystroke "v" using option down'`. Sending keystrokes needs Accessibility for the Stream Deck app (its built-in Hotkey action already uses it).
+- **Claude Code side** (user setup, documented in README): `/voice tap` once (persists), and in `~/.claude/keybindings.json` bind `voice:pushToTalk` to a chord no terminal claims — `ctrl+y` by default. Tap mode is required: a synthesized keystroke has no key-repeat, so hold mode cannot be triggered from a deck. Needs a Claude.ai login and microphone permission for the terminal app.
+- **Press**: `corgi agent focus <sessionId>`, wait until the next board shows `focusAt` newer than the press with no `focusError` (cap 1.5 s), then `osascript -e 'tell application "System Events" to keystroke "y" using control down'`. Sending keystrokes needs Accessibility for the Stream Deck app (its built-in Hotkey action already uses it).
 - **Feedback**: the key turns red with `REC` after the first press and back to idle when that session's status becomes `working` (transcript submitted) or after two minutes (Claude Code's own recording cap). corgi has no recording event; this is optimistic by design.
 - **Not covered**: sessions in the Claude Code panel (its dictation has no documented command id).
 

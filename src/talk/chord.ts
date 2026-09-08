@@ -84,4 +84,4 @@ export function keystrokeScript(chord: string): string | undefined {
 	return `tell application "System Events" to ${parsed.action}${using}`;
 }
 
-export const defaultChord = "alt+v";
+export const defaultChord = "ctrl+y";

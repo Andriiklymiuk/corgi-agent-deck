@@ -24,7 +24,7 @@
 			"Name": "Talk",
 			"UUID": "com.andriiklymiuk.agent-deck.talk",
 			"Icon": "imgs/actions/slot/icon",
-			"Tooltip": "Dictate into the session you last pressed: press to talk, press again to send. Needs /voice tap in Claude Code and the dictation chord bound (default alt+v).",
+			"Tooltip": "Dictate into the session in front: press to talk, press again to send. Needs /voice tap in Claude Code and the dictation chord bound (default ctrl+y).",
 			"PropertyInspectorPath": "ui/slot.html",
 			"Controllers": [
 				"Keypad"

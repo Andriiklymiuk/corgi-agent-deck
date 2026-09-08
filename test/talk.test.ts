@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { pickSession } from "../src/actions/talk";
 import type { BoardReport } from "../src/corgi/types";
 import { renderTalkKey } from "../src/render/key";
-import { keystrokeScript, parseChord } from "../src/talk/chord";
+import { defaultChord, keystrokeScript, parseChord } from "../src/talk/chord";
 
 const fixture = JSON.parse(readFileSync(new URL("../fixtures/sessions.json", import.meta.url), "utf8")) as BoardReport;
 
@@ -23,6 +23,7 @@ describe("chord", () => {
 
 	it("writes the AppleScript", () => {
 		expect(keystrokeScript("alt+v")).toBe('tell application "System Events" to keystroke "v" using option down');
+		expect(keystrokeScript(defaultChord)).toBe('tell application "System Events" to keystroke "y" using control down');
 		expect(keystrokeScript("ctrl+shift+v")).toBe('tell application "System Events" to keystroke "v" using {control down, shift down}');
 		expect(keystrokeScript("space")).toBe('tell application "System Events" to key code 49');
 		expect(keystrokeScript("nope+nope")).toBeUndefined();
