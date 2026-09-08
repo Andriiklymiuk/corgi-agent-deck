@@ -32,6 +32,22 @@ describe("Layout", () => {
 		expect(layout.count("mini")).toBe(2);
 	});
 
+	it("answers indexOf without re-sorting: a thousand lookups are cheap", () => {
+		const layout = new Layout();
+		for (let row = 0; row < 4; row++) {
+			for (let column = 0; column < 8; column++) {
+				layout.set("xl", `k-${row}-${column}`, { column, row });
+			}
+		}
+		const start = performance.now();
+		let sum = 0;
+		for (let i = 0; i < 100_000; i++) {
+			sum += layout.indexOf("k-3-7") ?? 0;
+		}
+		expect(sum).toBe(31 * 100_000);
+		expect(performance.now() - start).toBeLessThan(200);
+	});
+
 	it("keeps devices apart", () => {
 		const layout = new Layout();
 		for (let row = 0; row < 4; row++) {

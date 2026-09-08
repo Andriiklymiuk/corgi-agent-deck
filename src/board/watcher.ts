@@ -153,9 +153,11 @@ export class BoardWatcher extends EventEmitter<WatcherEvents> {
 		try {
 			text = await readFile(this.path, "utf8");
 		} catch {
-			// Not written yet, or the daemon cleaned up: ask corgi again on the
-			// next poll and let it say whether the daemon is up.
-			void this.refreshFromCli();
+			// Not written yet, or the daemon cleaned up: ask corgi whether the
+			// daemon is up — unless a retry is already on its way.
+			if (!this.retry) {
+				void this.refreshFromCli();
+			}
 			return;
 		}
 		let board: Board;

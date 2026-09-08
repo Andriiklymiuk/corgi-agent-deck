@@ -19,6 +19,23 @@
 				}
 			],
 			"UserTitleEnabled": false
+		},
+		{
+			"Name": "Talk",
+			"UUID": "com.andriiklymiuk.agent-deck.talk",
+			"Icon": "imgs/actions/slot/icon",
+			"Tooltip": "Dictate into the session you last pressed: press to talk, press again to send. Needs /voice tap in Claude Code and the dictation chord bound (default alt+v).",
+			"PropertyInspectorPath": "ui/slot.html",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/slot/key",
+					"TitleAlignment": "middle"
+				}
+			],
+			"UserTitleEnabled": false
 		}
 	],
 	"Category": "Agent Deck",

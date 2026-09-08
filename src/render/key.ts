@@ -32,7 +32,8 @@ export type Frame = 0 | 1;
 
 /** The daemon is not running: every key draws this. */
 export const offKey = { kind: "off" } as const;
-export type KeyInput = Slot | typeof offKey;
+/** A slot as the key should draw it now: live elapsed, and for the pager how many hidden sessions need you. */
+export type KeyInput = (Slot & { hiddenNeeds?: number }) | typeof offKey;
 
 const size = 144;
 const labelSize = 18;
@@ -52,7 +53,7 @@ export function keyCacheKey(input: KeyInput, frame: Frame): string {
 		return "off";
 	}
 	if (input.pager) {
-		return `pager|${input.overflow ?? 0}`;
+		return `pager|${input.overflow ?? 0}|${input.hiddenNeeds ?? 0}|${input.hiddenNeeds ? frame : 0}`;
 	}
 	if (input.empty || !input.sessionId) {
 		return "empty";
@@ -67,7 +68,7 @@ export function renderKey(input: KeyInput, frame: Frame): string {
 
 /** The SVG markup itself, for golden tests. */
 export function renderSvg(input: KeyInput, frame: Frame): string {
-	const body = "kind" in input ? offBody() : input.pager ? pagerBody(input.overflow ?? 0) : input.empty || !input.sessionId ? emptyBody() : sessionBody(input, frame);
+	const body = "kind" in input ? offBody() : input.pager ? pagerBody(input.overflow ?? 0, input.hiddenNeeds ?? 0, frame) : input.empty || !input.sessionId ? emptyBody() : sessionBody(input, frame);
 	return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><rect width="${size}" height="${size}" fill="${colors.ground}"/>${body}</svg>`;
 }
 
@@ -107,12 +108,38 @@ function sessionBody(slot: Slot, frame: Frame): string {
 	return parts.join("");
 }
 
-function pagerBody(overflow: number): string {
+/**
+ * The "+N" key. When a hidden session needs a person, the bar goes red and
+ * pulses and the word says so: the one thing the pager must not hide.
+ */
+function pagerBody(overflow: number, hiddenNeeds: number, frame: Frame): string {
+	const hot = hiddenNeeds > 0;
+	const bar = hot ? `<rect width="${size}" height="5" fill="${colors.needs_input}" opacity="${frame === 1 ? 0.45 : 1}"/>` : `<rect width="${size}" height="5" fill="${colors.dim}" opacity="0.5"/>`;
+	const word = hot ? `${hiddenNeeds} NEED YOU` : "MORE";
+	const wordColor = hot ? colors.needs_input : colors.dim;
 	return [
-		`<rect width="${size}" height="5" fill="${colors.dim}" opacity="0.5"/>`,
+		bar,
 		text(72, 84, `+${overflow}`, `font-size="40" font-weight="700" fill="${colors.text}" text-anchor="middle"`),
-		text(72, 128, "MORE", `font-size="11" font-weight="700" letter-spacing="1" fill="${colors.dim}" text-anchor="middle"`),
+		text(72, 128, word, `font-size="11" font-weight="700" letter-spacing="1" fill="${wordColor}" text-anchor="middle"`),
 	].join("");
+}
+
+/** The talk key's three looks. */
+export type TalkState = "idle" | "rec" | "off";
+
+export function renderTalkKey(state: TalkState): string {
+	const dim = state === "off";
+	const color = state === "rec" ? colors.needs_input : dim ? colors.dim : colors.text;
+	const body = [
+		state === "rec" ? `<rect width="${size}" height="5" fill="${colors.needs_input}"/>` : "",
+		// A microphone: capsule, stand, base.
+		`<g fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round"${dim ? ' opacity="0.5"' : ""}>`,
+		`<rect x="60" y="30" width="24" height="44" rx="12" fill="${state === "rec" ? colors.needs_input : "none"}"/>`,
+		`<path d="M48 62 a24 24 0 0 0 48 0"/><path d="M72 86 v14"/><path d="M58 102 h28"/>`,
+		"</g>",
+		text(72, 128, state === "rec" ? "REC · PRESS TO SEND" : state === "off" ? "OFF" : "TALK", `font-size="11" font-weight="700" letter-spacing="1" fill="${color}" text-anchor="middle"`),
+	].join("");
+	return toDataUri(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><rect width="${size}" height="${size}" fill="${colors.ground}"/>${body}</svg>`);
 }
 
 function emptyBody(): string {

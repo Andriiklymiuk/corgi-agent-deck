@@ -1,10 +1,11 @@
 import { action, type KeyAction, type KeyDownEvent, type KeyUpEvent, SingletonAction, type WillAppearEvent, type WillDisappearEvent } from "@elgato/streamdeck";
 
+import { hiddenNeeds, indexSessions, liveElapsed, type SessionIndex } from "../board/elapsed";
 import type { Layout } from "../board/layout";
 import type { BoardWatcher } from "../board/watcher";
 import type { Corgi } from "../corgi/cli";
 import type { Board, Slot } from "../corgi/types";
-import { type Frame, KeyCache, offKey } from "../render/key";
+import { type Frame, KeyCache, type KeyInput, offKey } from "../render/key";
 
 export const slotUUID = "com.andriiklymiuk.agent-deck.slot";
 
@@ -39,6 +40,12 @@ export class SlotAction extends SingletonAction {
 	private readonly cache = new KeyCache();
 	private frame: Frame = 0;
 	private lastPress: { index: number; at: number } | undefined;
+	private lastFocusedId: string | undefined;
+
+	/** The session the last press focused: where the talk key dictates. */
+	lastFocused(): string | undefined {
+		return this.lastFocusedId;
+	}
 
 	constructor(private readonly deps: SlotDeps) {
 		super();
@@ -99,7 +106,7 @@ export class SlotAction extends SingletonAction {
 		if (!this.deps.watcher.daemonRunning()) {
 			await this.deps.watcher.refreshFromCli();
 			if (!this.deps.watcher.daemonRunning()) {
-				await key.showAlert();
+				await key.showAlert().catch(() => undefined);
 			}
 			return;
 		}
@@ -112,11 +119,14 @@ export class SlotAction extends SingletonAction {
 		this.deps.log.debug(`key ${index + 1} ${kind}: corgi ${args.join(" ")}`);
 		const result = await this.deps.corgi.run(args);
 		if (result.ok) {
-			await key.showOk();
+			if (args[1] === "focus" && slot.sessionId) {
+				this.lastFocusedId = slot.sessionId;
+			}
+			await key.showOk().catch(() => undefined);
 			return;
 		}
 		this.deps.log.warn(`corgi ${args.join(" ")}: ${result.stderr.trim()}`);
-		await key.showAlert();
+		await key.showAlert().catch(() => undefined);
 		if (result.daemonDown) {
 			await this.deps.watcher.refreshFromCli();
 		}
@@ -129,15 +139,21 @@ export class SlotAction extends SingletonAction {
 	}
 
 	redraw(): void {
+		if (this.instances.size === 0) {
+			return;
+		}
 		const board = this.deps.watcher.current();
 		const running = this.deps.watcher.daemonRunning();
+		const now = Date.now();
+		const hidden = board ? hiddenNeeds(board) : 0;
+		const sessions = board ? indexSessions(board) : new Map();
 		for (const [id, key] of this.instances) {
 			const index = this.deps.layout.indexOf(id);
-			const input = !running || !board || index === undefined ? offKey : this.slotAt(index, board);
+			const input: KeyInput = !running || !board || index === undefined ? offKey : this.inputFor(this.slotAt(index, board), board, hidden, now, sessions);
 			const { key: cacheKey, image } = this.cache.get(input, this.frame);
 			if (this.drawn.get(id) !== cacheKey) {
 				this.drawn.set(id, cacheKey);
-				void key.setImage(image);
+				void key.setImage(image).catch(() => undefined);
 			}
 			if (running && board && index !== undefined) {
 				this.flashIfFailed(key, index, board);
@@ -145,15 +161,46 @@ export class SlotAction extends SingletonAction {
 		}
 	}
 
-	/** Something on this key needs a pulse frame. */
+	/** A slot as drawn now: elapsed keeps counting between publishes, the pager knows what it hides. */
+	private inputFor(slot: Slot, board: Board, hidden: number, now: number, sessions: SessionIndex): KeyInput {
+		if (slot.pager) {
+			return { ...slot, hiddenNeeds: hidden };
+		}
+		if (slot.sessionId) {
+			return { ...slot, elapsedS: liveElapsed(slot, board, now, sessions) };
+		}
+		return slot;
+	}
+
+	/** Something on this key needs a pulse frame: a session needing a person, or a pager hiding one. */
 	needsPulse(): boolean {
+		const board = this.deps.watcher.current();
+		if (!board || !this.deps.watcher.daemonRunning()) {
+			return false;
+		}
+		const hidden = hiddenNeeds(board);
+		for (const id of this.instances.keys()) {
+			const index = this.deps.layout.indexOf(id);
+			if (index === undefined) {
+				continue;
+			}
+			const slot = this.slotAt(index, board);
+			if (slot.status === "needs_input" || (slot.pager && hidden > 0)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** A session is on screen, so elapsed times should keep counting. */
+	showsSessions(): boolean {
 		const board = this.deps.watcher.current();
 		if (!board || !this.deps.watcher.daemonRunning()) {
 			return false;
 		}
 		for (const id of this.instances.keys()) {
 			const index = this.deps.layout.indexOf(id);
-			if (index !== undefined && this.slotAt(index, board).status === "needs_input") {
+			if (index !== undefined && this.slotAt(index, board).sessionId) {
 				return true;
 			}
 		}
@@ -171,12 +218,12 @@ export class SlotAction extends SingletonAction {
 		if (slot?.focusError && slot.focusAt && this.alerted.get(index) !== slot.focusAt && press?.index === index && Date.parse(slot.focusAt) >= press.at - 1000) {
 			this.alerted.set(index, slot.focusAt);
 			this.deps.log.info(`focus failed on key ${index + 1}: ${slot.focusError}`);
-			void key.showAlert();
+			void key.showAlert().catch(() => undefined);
 		}
 		if (slot?.empty && board.notice && board.noticeAt && press?.index === index && Date.parse(board.noticeAt) >= press.at - 1000 && this.alerted.get(index) !== board.noticeAt) {
 			this.alerted.set(index, board.noticeAt);
 			this.deps.log.info(`new session failed: ${board.notice}`);
-			void key.showAlert();
+			void key.showAlert().catch(() => undefined);
 		}
 	}
 }

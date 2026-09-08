@@ -88,7 +88,13 @@ describe("cache", () => {
 		expect(keyCacheKey(a, 0)).toBe(keyCacheKey(a, 1)); // only needs_input pulses
 		expect(keyCacheKey({ ...a, status: "needs_input" }, 0)).not.toBe(keyCacheKey({ ...a, status: "needs_input" }, 1));
 		expect(keyCacheKey({ index: 1, empty: true }, 0)).toBe("empty");
-		expect(keyCacheKey({ index: 5, pager: true, overflow: 2 }, 0)).toBe("pager|2");
+		expect(keyCacheKey({ index: 5, pager: true, overflow: 2 }, 0)).toBe("pager|2|0|0");
+		// A pager hiding a session that needs you pulses; one hiding none does not.
+		expect(keyCacheKey({ index: 5, pager: true, overflow: 2, hiddenNeeds: 1 }, 1)).toBe("pager|2|1|1");
+		expect(keyCacheKey({ index: 5, pager: true, overflow: 2 }, 1)).toBe("pager|2|0|0");
+		const hot = renderSvg({ index: 5, pager: true, overflow: 2, hiddenNeeds: 1 }, 0);
+		expect(hot).toContain("1 NEED YOU");
+		expect(hot).toContain('fill="#E5484D"');
 		expect(keyCacheKey(offKey, 1)).toBe("off");
 	});
 

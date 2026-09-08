@@ -28,7 +28,25 @@ Then install the plugin (a `.streamDeckPlugin` from [Releases](../../releases)) 
 
 Statuses: **WORKING** (amber), **NEEDS YOU** (red, pulsing: a permission prompt, a question, an API failure), **DONE** (green), **IDLE** (30 min quiet), **CLOSED** (a pinned key whose session exited). A profile chip (`WK`) marks sessions under another Claude account. A key flashes ⚠ once when a press could not land; `corgi agent doctor` says why.
 
+When a session needs you but has no key of its own, the `+N` key turns red and says how many. Elapsed times keep counting between corgi's updates.
+
 When the corgi daemon is not running every key reads `corgi OFF`; the plugin never starts it.
+
+## Talk key
+
+Drag a **Talk** key onto the deck to dictate into the session you last pressed: press to talk, press again to send. Claude Code does the recording; the key only focuses the session and presses its dictation chord. One-time setup in Claude Code:
+
+```
+/voice tap
+```
+
+and in `~/.claude/keybindings.json` bind the chord (default `alt+v`; change it in the key's settings):
+
+```json
+{ "bindings": [{ "context": "Chat", "bindings": { "alt+v": "voice:pushToTalk" } }] }
+```
+
+Tap mode is required: a synthesized keystroke has no key-repeat, so hold mode can't be triggered from a deck. Sending the chord needs Accessibility permission for the Stream Deck app (System Settings → Privacy & Security → Accessibility). The key shows REC optimistically and clears when the session starts working or after Claude Code's two-minute cap.
 
 ## Development
 

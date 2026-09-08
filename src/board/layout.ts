@@ -17,32 +17,44 @@ interface Placed {
 
 export class Layout {
 	private readonly placed = new Map<string, Placed>();
+	/** Slot index per action, rebuilt only when a key appears or disappears: redraws run every second. */
+	private indexes = new Map<string, number>();
+	private counts = new Map<string, number>();
 
 	set(deviceId: string, actionId: string, coords: Coordinates): void {
 		this.placed.set(actionId, { deviceId, coords: { column: coords.column, row: coords.row } });
+		this.rebuild();
 	}
 
 	remove(actionId: string): void {
-		this.placed.delete(actionId);
+		if (this.placed.delete(actionId)) {
+			this.rebuild();
+		}
 	}
 
 	/** 0-based slot index of an action on its device, or undefined when unknown. */
 	indexOf(actionId: string): number | undefined {
-		const entry = this.placed.get(actionId);
-		if (!entry) {
-			return undefined;
-		}
-		return this.ordered(entry.deviceId).indexOf(actionId);
+		return this.indexes.get(actionId);
 	}
 
 	/** Keys placed on a device. */
 	count(deviceId: string): number {
-		return this.ordered(deviceId).length;
+		return this.counts.get(deviceId) ?? 0;
 	}
 
 	/** Every device that has at least one key. */
 	devices(): string[] {
-		return [...new Set([...this.placed.values()].map((p) => p.deviceId))];
+		return [...this.counts.keys()];
+	}
+
+	private rebuild(): void {
+		this.indexes = new Map();
+		this.counts = new Map();
+		for (const deviceId of new Set([...this.placed.values()].map((p) => p.deviceId))) {
+			const ids = this.ordered(deviceId);
+			ids.forEach((id, index) => this.indexes.set(id, index));
+			this.counts.set(deviceId, ids.length);
+		}
 	}
 
 	/** Action ids on a device in slot order. */
