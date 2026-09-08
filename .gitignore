@@ -6,3 +6,5 @@ node_modules/
 *.sdPlugin/logs
 *.streamDeckPlugin
 logs
+
+.DS_store
