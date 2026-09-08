@@ -43,16 +43,27 @@ const inline = (name: string): string => `data:image/svg+xml;utf8,${encodeURICom
 /** A key with a physical bezel; frame picks the pulse frame for red keys. */
 const key = (name: string, frame: number): string => `<div class="key"><img src="${inline(svg[`${name}${frame}`] ? `${name}${frame}` : name)}"></div>`;
 
-const html = (view: string, frame: number, elapsedShift: number): string => {
+type Copy = { title: string; text: string; legend?: boolean };
+const copies: Record<string, Copy> = {
+	mk2: { title: "Agent Deck", text: "Every Claude Code session on your Mac on its own key. Press to jump to its window and terminal tab. Hold to pin. Talk to dictate into the one in front of you.", legend: true },
+	mini: { title: "Fits a Mini", text: "Five sessions and a Talk key. When more sessions run than keys, a +N key pages through the rest and turns red when one of them needs you.", legend: true },
+	talk: { title: "Talk", text: "Press once, speak, press again to send. It goes to the session in the window you are looking at — a terminal or the Claude Code panel — with no key press first.", legend: false },
+	states: { title: "Six states, one glance", text: "Amber while it works. Red and pulsing when it needs you: a permission prompt, a question, an API failure. Green when done. Blue with the reset time when the account hit its limit. Grey when idle or closed.", legend: true },
+};
+
+const html = (view: string, frame: number, elapsedShift: number, height = 1080): string => {
 	const f = frame % 2;
 	const mk2 = ["working", "needs", "done", "limited", "idle", "closed", "pager", "empty", "empty", "talk-idle", "empty", "empty", "empty", "empty", "empty"];
-	const mini = ["working", "needs", "done", "limited", "empty", "talk-rec"];
-	const names = view === "mini" ? mini : mk2;
-	const cols = view === "mini" ? 3 : 5;
+	const mini = ["working", "needs", "done", "limited", "pager", "talk-rec"];
+	const talk = ["working", "needs", "talk-idle", "done", "limited", "talk-rec"];
+	const states = ["working", "needs", "done", "limited", "idle", "closed"];
+	const names = view === "mini" ? mini : view === "talk" ? talk : view === "states" ? states : mk2;
+	const cols = view === "mk2" ? 5 : 3;
+	const copy = copies[view] ?? copies.mk2;
 	return `<!doctype html><meta charset="utf-8"><title>Agent Deck</title>
 <style>
-  html,body{margin:0;background:#0b0d12;width:1920px;height:1080px;overflow:hidden;font-family:-apple-system,Inter,Helvetica,Arial,sans-serif;color:#e8e8e8}
-  .stage{position:relative;width:1920px;height:1080px;display:flex;align-items:center;justify-content:center;gap:80px;background:radial-gradient(1200px 700px at 50% 40%,#171a22 0%,#0b0d12 70%)}
+  html,body{margin:0;background:#0b0d12;width:1920px;height:${height}px;overflow:hidden;font-family:-apple-system,Inter,Helvetica,Arial,sans-serif;color:#e8e8e8}
+  .stage{position:relative;width:1920px;height:${height}px;display:flex;align-items:center;justify-content:center;gap:80px;background:radial-gradient(1200px 700px at 50% 40%,#171a22 0%,#0b0d12 70%)}
   .deck{background:linear-gradient(180deg,#2b2e35,#15171c);border-radius:38px;padding:54px 58px;box-shadow:0 40px 120px rgba(0,0,0,.7),inset 0 2px 0 rgba(255,255,255,.08)}
   .grid{display:grid;grid-template-columns:repeat(${cols},144px);gap:26px}
   .key{width:144px;height:144px;border-radius:22px;background:#000;box-shadow:0 0 0 6px #23262d,0 0 0 8px #0c0d10,0 10px 22px rgba(0,0,0,.6);overflow:hidden}
@@ -66,9 +77,9 @@ const html = (view: string, frame: number, elapsedShift: number): string => {
 <div class="stage">
   <div class="deck"><div class="grid">${names.map((n) => key(n, f)).join("")}</div></div>
   <div class="copy">
-    <h1>Agent Deck</h1>
-    <p>Every Claude Code session on your Mac on its own key. Press to jump to its window and terminal tab. Hold to pin. Talk to dictate into the one in front of you.</p>
-    <div class="legend">
+    <h1>${copy.title}</h1>
+    <p>${copy.text}</p>
+    <div class="legend" ${copy.legend ? "" : 'style="display:none"'}>
       <span><b style="background:#F5A623"></b>working</span>
       <span><b style="background:#E5484D"></b>needs you</span>
       <span><b style="background:#30A46C"></b>done</span>
@@ -81,6 +92,11 @@ const html = (view: string, frame: number, elapsedShift: number): string => {
 
 writeFileSync(`${dir}/showcase-mk2.html`, html("mk2", 0, 0));
 writeFileSync(`${dir}/showcase-mini.html`, html("mini", 0, 0));
+// Elgato Marketplace media: thumbnail and gallery at 1920×960.
+mkdirSync(`${dir}/store`, { recursive: true });
+for (const view of ["mk2", "mini", "talk", "states"]) {
+	writeFileSync(`${dir}/store/${view}.html`, html(view, 0, 0, 960));
+}
 mkdirSync(`${dir}/frames`, { recursive: true });
 for (let i = 0; i < 8; i++) {
 	writeFileSync(`${dir}/frames/mini-${i}.html`, html("mini", i, i));
