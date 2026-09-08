@@ -145,7 +145,7 @@ Re-resolve when a spawn fails with `ENOENT`.
 1. A session starts anywhere → its key lights up with the project label within about a second.
 2. A session or its window closes → the key clears within 5 s (corgi's reaper). Other keys don't move.
 3. Each key shows: label, status bar + word, one detail line, a profile chip (hidden for `default`), a pin glyph when pinned.
-4. Short press → that session's window and tab come forward. The key shows ✓ (`showOk`) at once; if the next board reports a `focusError` newer than the press, the key shows ⚠ (`showAlert`) once.
+4. Short press → that session's window and tab come forward. The key shows nothing on success (the window coming up is the feedback); if the next board reports a `focusError` newer than the press, the key shows ⚠ (`showAlert`) once.
 5. Long press (≥ 600 ms) → pin / unpin.
 6. More sessions than keys → the last unpinned key is `+N`; short press pages forward, long press back.
 7. Empty key → short press opens a new Claude session; long press rescans.
@@ -248,7 +248,7 @@ Canvas 144×144 (Mini keys are 80×80; Stream Deck scales). Exact layout:
 | label | `x=12`, baseline `y=72` (one line) or `y=62` and `y=84` (two lines) | 18 px semibold, `#F2F4F7` |
 | detail | `x=12 y=98` | 10 px mono, `#8F98A8`, `detail` then ` · ` + elapsed (`12s`, `3m`, `1h04m`) |
 | status word | `x=12 y=128` | 11 px bold, letter-spacing 1, status colour |
-| ground | whole key | `#0A0C10` |
+| ground | whole key | `#000000` |
 
 - Label wrapping: break at `-`, `_`, `·`, `/`; otherwise hard-wrap at 9 characters; ellipsize the second line. Use a fixed advance table (semibold 18 px ≈ 10.5 px per character) so rendering is synchronous.
 - `gone`: everything at 40 % opacity. `unknown`: no status word, `?` where the word would be.
@@ -268,7 +268,7 @@ Canvas 144×144 (Mini keys are 80×80; Stream Deck scales). Exact layout:
 - `onKeyDown`: record `pressedAt`, start a 600 ms timer.
 - `onKeyUp`: if the timer is still pending → short press; else ignore (the long press already fired).
 - Timer fires → long press.
-- Map presses to commands per section 1.4 using the slot at `layout.indexOf(action)` in the current board. `showOk()` immediately on any accepted press; on the next board, if that slot's `focusAt > pressedAt` and `focusError` is set, `showAlert()` once and remember that `focusAt`.
+- Map presses to commands per section 1.4 using the slot at `layout.indexOf(action)` in the current board. No ✓ on an accepted press; on the next board, if that slot's `focusAt > pressedAt` and `focusError` is set, `showAlert()` once and remember that `focusAt`.
 - For an empty-key `new`, watch `board.noticeAt > pressedAt` with a non-empty `notice` → `showAlert()`.
 - Redraw: on every `board` event, for each instance, compute its slot and `setImage(renderKey(slot, frame))` only if the cache key changed.
 

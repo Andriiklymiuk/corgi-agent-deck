@@ -122,7 +122,6 @@ export class SlotAction extends SingletonAction {
 			if (args[1] === "focus" && slot.sessionId) {
 				this.lastFocusedId = slot.sessionId;
 			}
-			await key.showOk().catch(() => undefined);
 			return;
 		}
 		this.deps.log.warn(`corgi ${args.join(" ")}: ${result.stderr.trim()}`);

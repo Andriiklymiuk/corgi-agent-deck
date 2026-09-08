@@ -8,7 +8,7 @@ import type { Slot, Status } from "../corgi/types";
  */
 
 export const colors = {
-	ground: "#0A0C10",
+	ground: "#000000",
 	text: "#F2F4F7",
 	dim: "#8F98A8",
 	working: "#F5A623",

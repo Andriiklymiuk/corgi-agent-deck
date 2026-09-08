@@ -123,7 +123,6 @@ export class TalkAction extends SingletonAction {
 		try {
 			await this.deps.sendKeystroke(script);
 			this.deps.log.debug(`talk: sent ${this.deps.chord()} to ${sessionId}`);
-			await key.showOk().catch(() => undefined);
 			return true;
 		} catch (error) {
 			this.deps.log.warn(`talk: keystroke failed (Accessibility for Stream Deck?): ${String((error as Error).message)}`);
