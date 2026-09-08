@@ -1,6 +1,6 @@
 {
 	"Name": "Corgi Agent Deck",
-	"Version": "0.2.0.0",
+	"Version": "0.3.0.0",
 	"Author": "Andrii Klymiuk",
 	"Actions": [
 		{
@@ -24,8 +24,42 @@
 			"Name": "Talk",
 			"UUID": "com.andriiklymiuk.corgi-agent-deck.talk",
 			"Icon": "imgs/actions/slot/icon",
-			"Tooltip": "Dictate into the session in front: press to talk, press again to send. A terminal session needs /voice tap in Claude Code and the chord bound (default ctrl+y); the Claude Code panel takes cmd+d.",
+			"Tooltip": "Dictate into the session in front: press to talk, press again to send. While that session waits on a permission the key turns red: press to allow, hold to deny. A terminal session needs /voice tap in Claude Code and the chord bound (default ctrl+y); the Claude Code panel takes cmd+d.",
 			"PropertyInspectorPath": "ui/slot.html",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/slot/key",
+					"TitleAlignment": "middle"
+				}
+			],
+			"UserTitleEnabled": false
+		},
+		{
+			"Name": "Prompt",
+			"UUID": "com.andriiklymiuk.corgi-agent-deck.prompt",
+			"Icon": "imgs/actions/slot/icon",
+			"Tooltip": "A canned prompt: press to type it into the session in front (continue, run the tests, /compact, commit, or your own text), with Enter unless turned off.",
+			"PropertyInspectorPath": "ui/prompt.html",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/slot/key",
+					"TitleAlignment": "middle"
+				}
+			],
+			"UserTitleEnabled": false
+		},
+		{
+			"Name": "Budget",
+			"UUID": "com.andriiklymiuk.corgi-agent-deck.budget",
+			"Icon": "imgs/actions/slot/icon",
+			"Tooltip": "One Claude account's usage: a ring for the five-hour window, a bar for the seven-day one, and when it resets. Blue when a session under it hit the limit, red when the window will run out first. Press to open corgi's dashboard.",
+			"PropertyInspectorPath": "ui/budget.html",
 			"Controllers": [
 				"Keypad"
 			],
@@ -41,7 +75,7 @@
 	"Category": "Corgi Agent Deck",
 	"CategoryIcon": "imgs/plugin/category-icon",
 	"CodePath": "bin/plugin.js",
-	"Description": "Every Claude Code session on this Mac on its own key: working, needs you, done. Press to focus the window and terminal tab; long-press to pin. Powered by corgi agent.",
+	"Description": "Every Claude Code session on this Mac on its own key: working, needs you, done, with its context window along the bottom. Press to focus the window and terminal tab; long-press to pin. Talk, Prompt and Budget keys answer permissions, send canned prompts and show your usage. Powered by corgi agent.",
 	"Icon": "imgs/plugin/marketplace",
 	"SDKVersion": 3,
 	"Software": {

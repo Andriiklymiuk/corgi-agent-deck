@@ -6,23 +6,17 @@ import type { BoardWatcher } from "../board/watcher";
 import type { Corgi } from "../corgi/cli";
 import type { Board, Slot, Status } from "../corgi/types";
 import { type Frame, KeyCache, type KeyInput, offKey } from "../render/key";
+import { HoldDetector, longPressMs } from "./hold";
 
 export const slotUUID = "com.andriiklymiuk.corgi-agent-deck.slot";
 
-/** Hold this long for a long press (pin, previous page, rescan). */
-export const longPressMs = 600;
+export { longPressMs };
 
 export interface SlotDeps {
 	layout: Layout;
 	watcher: BoardWatcher;
 	corgi: Corgi;
 	log: { info(msg: string): void; debug(msg: string): void; warn(msg: string): void };
-}
-
-interface Pressed {
-	at: number;
-	timer: NodeJS.Timeout;
-	fired: boolean;
 }
 
 /**
@@ -33,7 +27,12 @@ interface Pressed {
 @action({ UUID: slotUUID })
 export class SlotAction extends SingletonAction {
 	private readonly instances = new Map<string, KeyAction>();
-	private readonly pressed = new Map<string, Pressed>();
+	private readonly hold = new HoldDetector((actionId, kind, at) => {
+		const key = this.instances.get(actionId);
+		if (key) {
+			void this.press(key, kind, at);
+		}
+	});
 	private readonly drawn = new Map<string, string>();
 	/** Per slot index: the focusAt already flashed, so a failure alerts once. */
 	private readonly alerted = new Map<number, string>();
@@ -64,37 +63,16 @@ export class SlotAction extends SingletonAction {
 		this.instances.delete(ev.action.id);
 		this.drawn.delete(ev.action.id);
 		this.deps.layout.remove(ev.action.id);
-		this.cancelPress(ev.action.id);
+		this.hold.cancel(ev.action.id);
 		this.redraw();
 	}
 
 	override onKeyDown(ev: KeyDownEvent): void {
-		this.cancelPress(ev.action.id);
-		const at = Date.now();
-		const timer = setTimeout(() => {
-			const p = this.pressed.get(ev.action.id);
-			if (p) {
-				p.fired = true;
-				void this.press(ev.action, "long", at);
-			}
-		}, longPressMs);
-		this.pressed.set(ev.action.id, { at, timer, fired: false });
+		this.hold.down(ev.action.id);
 	}
 
 	override onKeyUp(ev: KeyUpEvent): void {
-		const p = this.pressed.get(ev.action.id);
-		this.cancelPress(ev.action.id);
-		if (p && !p.fired) {
-			void this.press(ev.action, "short", p.at);
-		}
-	}
-
-	private cancelPress(actionId: string): void {
-		const p = this.pressed.get(actionId);
-		if (p) {
-			clearTimeout(p.timer);
-			this.pressed.delete(actionId);
-		}
+		this.hold.up(ev.action.id);
 	}
 
 	/** What a press means depends only on what the key shows. */

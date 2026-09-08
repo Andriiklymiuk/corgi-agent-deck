@@ -6,15 +6,17 @@
  *   npx -y tsx scripts/showcase.ts            # writes docs/media/showcase.html + keys/*.svg
  */
 import { mkdirSync, writeFileSync } from "node:fs";
-import { renderSvg, renderTalkKey, type KeyInput, type Frame } from "../src/render/key";
+import { renderBudgetKey, renderPromptKey, renderSvg, renderTalkKey, type KeyInput, type Frame } from "../src/render/key";
 
 const keys: Record<string, KeyInput> = {
-	working: { index: 0, sessionId: "a", label: "corgi", profile: "default", status: "working", elapsedS: 15, detail: "Bash", host: "vscode-panel" },
-	needs: { index: 1, sessionId: "b", label: "acme-api", profile: "work", status: "needs_input", elapsedS: 540, detail: "permission: Bash", host: "vscode-terminal" },
-	done: { index: 2, sessionId: "c", label: "agent-deck", profile: "default", status: "done", elapsedS: 660, host: "vscode-panel" },
-	limited: { index: 3, sessionId: "d", label: "mobile", profile: "work", status: "limited", elapsedS: 120, detail: "resets 1:10pm", host: "vscode-terminal" },
-	idle: { index: 4, sessionId: "e", label: "billing", profile: "default", status: "stale", elapsedS: 1900, host: "iterm" },
+	working: { index: 0, sessionId: "a", label: "corgi", profile: "default", status: "working", elapsedS: 15, detail: "Bash go test", host: "vscode-panel", context: 42 },
+	needs: { index: 1, sessionId: "b", label: "acme-api", profile: "work", status: "needs_input", elapsedS: 540, detail: "permission: Bash go test", pending: "Bash", host: "vscode-terminal", context: 67 },
+	done: { index: 2, sessionId: "c", label: "agent-deck", profile: "default", status: "done", elapsedS: 660, host: "vscode-panel", context: 23 },
+	limited: { index: 3, sessionId: "d", label: "mobile", profile: "work", status: "limited", elapsedS: 120, detail: "resets 1:10pm", host: "vscode-terminal", context: 91 },
+	idle: { index: 4, sessionId: "e", label: "billing", profile: "default", status: "stale", elapsedS: 1900, host: "iterm", context: 12 },
 	closed: { index: 5, sessionId: "f", label: "infra", profile: "default", status: "gone", pinned: true, elapsedS: 3000, host: "vscode-terminal" },
+	slow: { index: 6, sessionId: "g", label: "web", profile: "default", status: "working", stuck: true, elapsedS: 800, detail: "Bash npm test", host: "vscode-terminal", context: 58 },
+	noted: { index: 7, sessionId: "h", label: "docs", profile: "default", status: "done", note: "waiting on PR", elapsedS: 400, host: "vscode-terminal", context: 35 },
 	pager: { index: 6, pager: true, overflow: 2, hiddenNeeds: 1 },
 	pagerQuiet: { index: 6, pager: true, overflow: 2, hiddenNeeds: 0 },
 	empty: { index: 7, empty: true },
@@ -31,11 +33,18 @@ for (const [name, input] of Object.entries(keys)) {
 		writeFileSync(`${dir}/keys/${name}${frame === 1 ? "-pulse" : ""}.svg`, s);
 	}
 }
+const fromUri = (uri: string): string => decodeURIComponent(uri.replace(/^data:image\/svg\+xml[,;][^,]*,?/, ""));
 for (const state of ["idle", "rec", "off"] as const) {
-	const uri = renderTalkKey(state);
-	const s = decodeURIComponent(uri.replace(/^data:image\/svg\+xml[,;][^,]*,?/, ""));
-	svg[`talk-${state}`] = s;
-	writeFileSync(`${dir}/keys/talk-${state}.svg`, s);
+	svg[`talk-${state}`] = fromUri(renderTalkKey(state));
+}
+svg["talk-allow"] = fromUri(renderTalkKey("idle", { tool: "Bash", subject: "go test" }));
+svg["prompt-tests"] = fromUri(renderPromptKey("run the tests and fix what fails", true));
+svg["prompt-compact"] = fromUri(renderPromptKey("/compact", true));
+const resetsIn = (hours: number): string => new Date(Date.now() + hours * 3600 * 1000).toISOString();
+svg["budget-default"] = fromUri(renderBudgetKey({ profile: "default", fiveHour: 29, sevenDay: 15, resetsAt: resetsIn(2) }));
+svg["budget-work"] = fromUri(renderBudgetKey({ profile: "work", fiveHour: 88, sevenDay: 64, resetsAt: resetsIn(1), unsafe: true }));
+for (const name of ["talk-idle", "talk-rec", "talk-off", "talk-allow", "prompt-tests", "prompt-compact", "budget-default", "budget-work"]) {
+	writeFileSync(`${dir}/keys/${name}.svg`, svg[name]);
 }
 
 const inline = (name: string): string => `data:image/svg+xml;utf8,${encodeURIComponent(svg[name])}`;
@@ -45,18 +54,18 @@ const key = (name: string, frame: number): string => `<div class="key"><img src=
 
 type Copy = { title: string; text: string; legend?: boolean };
 const copies: Record<string, Copy> = {
-	mk2: { title: "Corgi Agent Deck", text: "Every Claude Code session on your Mac on its own key. Press to jump to its window and terminal tab. Hold to pin. Talk to dictate into the one in front of you.", legend: true },
+	mk2: { title: "Corgi Agent Deck", text: "Every Claude Code session on your Mac on its own key, its context window along the bottom. Press to jump to its window and terminal tab. Hold to pin. Talk answers a permission or dictates; Prompt sends a canned line; Budget shows your usage.", legend: true },
 	mini: { title: "Fits a Mini", text: "Five sessions and a Talk key. When more sessions run than keys, a +N key pages through the rest and turns red when one of them needs you.", legend: true },
-	talk: { title: "Talk", text: "Press once, speak, press again to send. It goes to the session in the window you are looking at — a terminal or the Claude Code panel — with no key press first.", legend: false },
-	states: { title: "Six states, one glance", text: "Amber while it works. Red and pulsing when it needs you: a permission prompt, a question, an API failure. Green when done. Blue with the reset time when the account hit its limit. Grey when idle or closed.", legend: true },
+	talk: { title: "Talk, Prompt, Budget", text: "Talk turns red while the session in front waits on a permission: press to allow, hold to deny. Press once to speak, again to send. Prompt keys type a line — continue, run the tests, /compact. Budget is the account's five-hour ring and seven-day bar.", legend: false },
+	states: { title: "Six states, one glance", text: "Amber while it works, SLOW when it has gone quiet. Red and pulsing when it needs you: a permission prompt, a question, an API failure. Green when done. Blue with the reset time when the account hit its limit. Grey when idle or closed. The bar along the bottom is the context window.", legend: true },
 };
 
 const html = (view: string, frame: number, elapsedShift: number, height = 1080): string => {
 	const f = frame % 2;
-	const mk2 = ["working", "needs", "done", "limited", "idle", "closed", "pager", "empty", "empty", "talk-idle", "empty", "empty", "empty", "empty", "empty"];
+	const mk2 = ["working", "needs", "done", "limited", "idle", "closed", "slow", "noted", "pager", "empty", "talk-allow", "prompt-tests", "prompt-compact", "budget-default", "budget-work"];
 	const mini = ["working", "needs", "done", "limited", "pager", "talk-rec"];
-	const talk = ["working", "needs", "talk-idle", "done", "limited", "talk-rec"];
-	const states = ["working", "needs", "done", "limited", "idle", "closed"];
+	const talk = ["needs", "talk-allow", "budget-work", "prompt-tests", "prompt-compact", "talk-rec"];
+	const states = ["working", "needs", "done", "limited", "slow", "closed"];
 	const names = view === "mini" ? mini : view === "talk" ? talk : view === "states" ? states : mk2;
 	const cols = view === "mk2" ? 5 : 3;
 	const copy = copies[view] ?? copies.mk2;

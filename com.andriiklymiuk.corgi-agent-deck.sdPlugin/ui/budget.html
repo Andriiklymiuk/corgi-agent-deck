@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+    <title>Corgi Agent Deck — Budget</title>
+    <meta charset="utf-8" />
+    <script src="https://sdpi-components.dev/releases/v4/sdpi-components.js"></script>
+</head>
+
+<body>
+    <sdpi-item label="Account">
+        <sdpi-select setting="profile" datasource="getProfiles" loading="asking corgi…" placeholder="the board's first account"></sdpi-select>
+    </sdpi-item>
+    <sdpi-item label="Or type one">
+        <sdpi-textfield setting="profileText" placeholder="profile name (wins over the list)"></sdpi-textfield>
+    </sdpi-item>
+    <sdpi-item label="">
+        <div style="font-size: 11px; opacity: .8; line-height: 1.5;">
+            The ring is the five-hour window, the bar the seven-day one, the line under them when the five-hour window
+            resets. Numbers are what Claude Code last fetched for that account (<code>/usage</code>);
+            <code>corgi agent usage</code> prints the same. Blue: a session under the account hit its limit.
+            Red ring: at the current pace the window runs out before it resets. Press to open corgi's dashboard.
+        </div>
+    </sdpi-item>
+</body>
+
+</html>

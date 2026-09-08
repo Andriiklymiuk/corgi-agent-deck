@@ -2,7 +2,7 @@
 
 A Stream Deck plugin whose keys are a live view of every Claude Code session on this Mac. Press a key and that session's window and terminal tab come to the front. Long-press to pin. An empty key opens a new session. Nothing to configure per session.
 
-This document is self-contained. Everything the plugin needs from the outside world already exists in **corgi** (`corgi agent track`, corgi ≥ 1.21.32) and the **corgi VS Code extension** (≥ 1.16.7). Corgi Agent Deck is a thin renderer: it reads one JSON file and runs a few `corgi agent …` commands. It holds no session state of its own.
+This document is self-contained. Everything the plugin needs from the outside world already exists in **corgi** (`corgi agent track`, corgi ≥ 1.21.32; the context bar, SLOW, notes, the approve key, Prompt and Budget need the board fields of corgi ≥ 1.21.46) and the **corgi VS Code extension** (≥ 1.16.7). Corgi Agent Deck is a thin renderer: it reads one JSON file and runs a few `corgi agent …` commands. It holds no session state of its own.
 
 ---
 
@@ -53,8 +53,9 @@ interface Board {
   sessions: Session[];        // every tracked session, oldest first
   windows?: Window[];         // editor windows the corgi VS Code extension has connected
   lastFocusWindow?: string;   // window id the last successful focus landed in
-  notice?: string;            // last board-level failure (e.g. `new` with no window); "" when cleared
+  notice?: string;            // last board-level failure (e.g. `new` with no window, a refused `answer`); "" when cleared
   noticeAt?: string;          // when notice was set
+  accounts?: Account[];       // usage per Claude account
 }
 
 interface Slot {
@@ -72,6 +73,10 @@ interface Slot {
   host?: HostKind;
   focusError?: string;        // set when the last press on this key could not land
   focusAt?: string;           // when the last focus attempt was made (success or failure)
+  context?: number;           // context window used, percent; 0/absent = unknown
+  pending?: string;           // tool of the permission prompt waiting, only while status is needs_input
+  note?: string;              // the owner's line (`corgi agent note`); outlives any detail
+  stuck?: boolean;            // working but silent for 12+ minutes
 }
 
 type Status = "working" | "needs_input" | "done" | "stale" | "gone" | "unknown";
@@ -84,7 +89,17 @@ interface Session {                // only what a plugin might want; the file ha
   host: { kind: HostKind; windowId?: string; app?: string; folder?: string;
           shellPid?: number; terminal?: string; connected?: boolean };
   focusError?: string; focusAt?: string;
+  context?: { tokens: number; window: number; percent: number; model?: string; at: string };
+  pending?: { tool: string; subject?: string; at: string };   // subject: the one safe word about the input ("go test", "registry.go")
+  title?: string; note?: string; stuck?: boolean;
 }
+
+interface Account {                // top-level `accounts[]`: every account the sessions run under
+  profile: string; configDir?: string; sessions: number;
+  limits?: { fetchedAt: string; fiveHour: { percent: number; resetsAt?: string }; sevenDay: { percent: number; resetsAt?: string } };
+  forecast?: { fiveHour?: WindowForecast; sevenDay?: WindowForecast };
+}
+interface WindowForecast { percentPerHour: number; exhaustAt?: string; safe: boolean; samples: number } // safe:false = runs out before it resets
 
 interface Window { id: string; app?: string; extHostPid: number; folders?: string[];
                    terminals?: { name: string; shellPid: number }[]; updatedAt: string }
@@ -95,13 +110,14 @@ Slot invariants you can rely on:
 - Indexes never move on their own. A new session takes the lowest free key; an ending one frees its key; nothing is re-sorted. Only `page` and unpinning change existing assignments.
 - A pinned key keeps its session even after the process exits (`status: "gone"`) until unpinned.
 - With overflow, the **highest unpinned key** becomes the pager: `pager: true`, `overflow: N`, no `sessionId`.
-- `label` is already unique and already ellipsis-safe for two lines of 18 px at 144 px width when broken at `-`, `_`, `·`, `/`.
+- `label` is already unique and already ellipsis-safe for two lines of 24 px at 144 px width when broken at `-`, `_`, `·`, `/`.
+- `detail` reads like `Edit registry.go`, `Bash go test`, `permission: Bash go test`: the tool and the one safe word about its input.
 
 ### 1.3 Statuses and their meaning
 
 | status | when | bar colour | word |
 |---|---|---|---|
-| `working` | model running or a tool executing | amber `#F5A623` | WORKING |
+| `working` | model running or a tool executing | amber `#F5A623` | WORKING, or **SLOW** when `stuck` |
 | `needs_input` | permission prompt, a question, an API failure | red `#E5484D`, **pulsing** | NEEDS YOU |
 | `done` | turn finished, waiting for a prompt | green `#30A46C` | DONE |
 | `limited` | the account hit its usage limit; `detail` says when it resets | blue `#5B8DEF` | LIMIT |
@@ -125,6 +141,11 @@ All are `corgi agent …`. They enqueue for the daemon and return immediately (w
 | long press, empty key | `corgi agent rescan` | adopt sessions the hooks missed |
 | device key count ≠ `size` | `corgi agent board --slots <count>` | applies live; `--json` → `{"ok":true,"size":N,"applied":true}`; `applied:false` means no daemon yet |
 | diagnostics (PI) | `corgi agent doctor --json`, `corgi agent status` | read-only |
+| Talk key, permission pending | `corgi agent answer <sessionId> allow` (press) / `deny` (hold) | corgi types Claude Code's own keys into the session after focusing it; a risky Bash command is refused and lands as `notice` |
+| Prompt key | `corgi agent send <sessionId> [--enter] -- <text>` | focuses, then types; the outcome is the session's `focusAt`/`focusError` |
+| Budget key | `corgi agent status --json` → `dashboardUrl` | opened in the browser when present |
+
+A `vscode-panel` session takes no text from corgi (its input is a web view): `send` and `answer` record a `focusError` containing "keyboard" on the session. The window is up by then, so the key runs `corgi agent focus` (which reveals the chat) and presses the keys itself: the text plus Enter for a prompt; Enter for allow, `2` then Enter for always, Escape for deny.
 
 `--json` on any of these prints a JSON object; without it they print one human line.
 
@@ -170,7 +191,11 @@ agent-deck/
   src/
     plugin.ts                                entry: registers actions, starts BoardWatcher, wires logging
     actions/slot.ts                          the board key: appear/disappear, keyDown/keyUp
-    actions/talk.ts                          optional (section 7)
+    actions/talk.ts                          talk + approve (section 7)
+    actions/prompt.ts                        canned prompts (section 7.1)
+    actions/budget.ts                        account usage (section 7.2)
+    actions/hold.ts                          short press vs. 600 ms hold, shared by every key
+    board/outcome.ts                         what the board says became of a focus/send/answer
     board/watcher.ts                         resolve path via CLI, fs.watch + 5 s fallback poll, parse, emit
     board/layout.ts                          (deviceId, actionId, coordinates) → slot index
     render/key.ts                            Slot → SVG data URI, cache, pulse frames
@@ -182,7 +207,7 @@ agent-deck/
     sessions.json                            a real board captured from corgi (`corgi agent sessions --json`)
 ```
 
-One action UUID for the board: `com.andriiklymiuk.corgi-agent-deck.slot`. Six copies dragged onto a Mini in any order make a board.
+One action UUID for the board: `com.andriiklymiuk.corgi-agent-deck.slot`. Six copies dragged onto a Mini in any order make a board. The other actions are `…talk`, `…prompt` and `…budget`.
 
 ---
 
@@ -239,25 +264,27 @@ export function renderKey(slot: Slot | { kind: "off" }, opts: { frame: 0 | 1 }):
 export function keyCacheKey(slot: Slot, frame: 0 | 1): string; // label|status|profile|pinned|detail|elapsedBucket|frame
 ```
 
-Canvas 144×144 (Mini keys are 80×80; Stream Deck scales). Exact layout:
+Canvas 144×144 (Mini keys are 80×80; Stream Deck scales). Type is sized to be read from a desk, not held up to the eyes. Exact layout:
 
 | element | position | style |
 |---|---|---|
 | status bar | `rect 0,0 144×5` | status colour |
 | pin glyph | `x=12 y=24` | 11 px, `📌` or a simple pin path |
+| elapsed | right-aligned at `x=132 y=24` (`x=98` when a chip is shown) | 12 px mono, `#8F98A8` (`12s`, `3m`, `1h04m`) |
 | profile chip | `rect 104,12 28×16 r3`, text centred at `118,24` | 10 px mono, 2 letters uppercase (`WK` for `work`), hidden for `default` |
-| label | `x=12`, baseline `y=72` (one line) or `y=62` and `y=84` (two lines) | 18 px semibold, `#F2F4F7` |
-| detail | `x=12 y=98` | 10 px mono, `#8F98A8`, `detail` then ` · ` + elapsed (`12s`, `3m`, `1h04m`) |
-| status word | `x=12 y=128` | 11 px bold, letter-spacing 1, status colour |
+| label | `x=12`, baseline `y=72` (one line) or `y=58` and `y=85` (two lines) | 24 px semibold, `#F2F4F7` |
+| detail | `x=12 y=106` | 13 px mono, `#8F98A8`; the `note` when set, else `detail` (a pending permission drops its `permission: ` prefix); ellipsized at 15 characters |
+| status word | `x=12 y=128` | 14 px bold, letter-spacing 1, status colour; `SLOW` for a stuck working session |
+| context bar | `rect 0,140 144×4` | filled to `context` %; grey `#6E6E6E` ≤ 60, amber > 60, red > 85, over a 25 % track; nothing when unknown |
 | ground | whole key | `#000000` |
 
-- Label wrapping: break at `-`, `_`, `·`, `/`; otherwise hard-wrap at 9 characters; ellipsize the second line. Use a fixed advance table (semibold 18 px ≈ 10.5 px per character) so rendering is synchronous.
+- Label wrapping: break at `-`, `_`, `·`, `/`; otherwise hard-wrap at 9 characters; ellipsize the second line. Use a fixed advance table (semibold 24 px ≈ 13 px per character) so rendering is synchronous.
 - `gone`: everything at 40 % opacity. `unknown`: no status word, `?` where the word would be.
 - Pager: `+N` centred, 40 px bold, and `MORE` as the status word in dim gray; bar dim gray.
 - Empty: ground only, a faint `+` (34 px, 35 % opacity) centred.
 - Off (no daemon): ground, label `corgi`, word `OFF` in dim gray, bar off.
 - **Escape every string** (`& < > "`) before it enters the SVG. Labels and details come from directory names and Claude's own messages.
-- Cache by `keyCacheKey`; bucket `elapsedS` to 5 s so a working key redraws at most every 5 s.
+- Cache by `keyCacheKey` (label, status, profile, pinned, detail, elapsed bucket, host, pulse, context, pending, note, stuck); bucket `elapsedS` to 5 s so a working key redraws at most every 5 s.
 - Pulse: `needs_input` alternates frames 0/1 at 1 Hz (bar and word at full vs 45 % opacity). One `setInterval` for the whole plugin, running only while any visible slot is `needs_input`.
 
 ### 4.5 `actions/slot.ts`
@@ -305,6 +332,15 @@ A second action, `com.andriiklymiuk.corgi-agent-deck.talk`: press to dictate int
 - **Press**: `corgi agent focus <sessionId>`, wait until the next board shows `focusAt` newer than the press with no `focusError` (cap 1.5 s), then `osascript -e 'tell application "System Events" to keystroke "y" using control down'`. Sending keystrokes needs Accessibility for the Stream Deck app (its built-in Hotkey action already uses it).
 - **Feedback**: the key turns red with `REC` after the first press and back to idle when that session's status becomes `working` (transcript submitted) or after two minutes (Claude Code's own recording cap). corgi has no recording event; this is optimistic by design.
 - **Panel sessions**: the Claude Code panel has its own dictation shortcut (`cmd+d` in the webview), so a `vscode-panel` session gets that chord (`talkPanelChord`, default `cmd+d`) instead of the keybindings.json one; the panel's second press only stops recording, so `talkPanelSend` (default `enter`) follows after `talkPanelSendDelayMs` (default 1500).
+- **Approve**: while the session Talk would pick has `pending` (and is still `needs_input`), the key is red: `ALLOW`, the tool, its subject (`sessions[].pending.subject`), `HOLD TO DENY`. A short press runs `corgi agent answer <id> allow`; a hold (600 ms, the slot keys' detection) runs `deny`. The board's outcome within 1.5 s decides the feedback: a `notice` (corgi refused a risky command) flashes ⚠; a `focusError` naming the keyboard means a panel session, so the key focuses it and presses Enter / `2` Enter / Escape itself; otherwise ✓. Nothing pending: the normal Talk key. A recording in progress is never interrupted by a prompt.
+
+### 7.1 Prompt key
+
+`com.andriiklymiuk.corgi-agent-deck.prompt`: a canned prompt. Per-key settings (this action has them by nature): `preset` (`continue`, `tests` = "run the tests and fix what fails", `compact` = `/compact`, `commit` = "commit with a good message", `custom`), `text` (used with `custom`), `enter` (default on). The face is a dark key (`#1C2029`) with the first word or two of the text (`run the`, `/compact`) and `SEND` (`TYPE` when Enter is off). A press picks the session exactly like Talk and runs `corgi agent send <id> [--enter] -- <text>`; the same outcome rules as approve apply, with the panel fallback typing the text through `osascript` (`keystroke "…"`, then `key code 36`), `xdotool type` or SendKeys.
+
+### 7.2 Budget key
+
+`com.andriiklymiuk.corgi-agent-deck.budget`: one account's usage. Settings: `profile` (a dropdown fed by the plugin from `accounts[]` and the sessions' profiles, through sdpi-components' `datasource` = `getProfiles`) and `profileText` (typed; wins). Face: the profile name top-left; a ring for `limits.fiveHour.percent` with the number inside; a bar for `sevenDay.percent`; `resets 4:10pm` (local time; a weekday when more than a day away) for `fiveHour.resetsAt`. Colour: blue with a blue bar and `LIMIT` when any session under that profile is `limited`; red when `forecast.fiveHour.safe === false`; else white/amber/red by fill (60 / 85). `—` and `no usage yet` before any session under the account has fetched usage; dim `OFF` without the daemon. A press runs `corgi agent status --json` and opens `dashboardUrl` when there is one, else shows ✓.
 
 ---
 
@@ -319,6 +355,7 @@ A second action, `com.andriiklymiuk.corgi-agent-deck.talk`: press to dictate int
 | 5 | Empty key `new`, no-daemon state, PI, board-size sync | `+` opens a new claude terminal that takes the key; quitting the daemon dims all keys and they return on restart; an XL shows 32 slots without config |
 | 6 | `streamdeck pack`, GitHub release workflow, README with a GIF | Install from a release `.streamDeckPlugin` on a clean Mac |
 | 7 | Talk key | Press, speak, press: the prompt is sent |
+| 8 | Bigger type, context bar, SLOW, notes; approve on Talk; Prompt and Budget keys | A permission prompt turns Talk red and a press allows it; a Prompt key types into a terminal session and into a panel session; a Budget key matches `corgi agent usage` |
 
 ### Verify on the Mac before milestone 3
 
@@ -332,7 +369,8 @@ A second action, `com.andriiklymiuk.corgi-agent-deck.talk`: press to dictate int
 ## 9. Tests
 
 - **layout**: coordinates in random order on a 3×2 and an 8×4 map to indexes 0…n−1; a removed instance re-packs; two devices are independent.
-- **render**: golden SVG strings for each status, a two-line label, a pinned work-profile key, the pager, empty, off; the cache returns the same string for the same inputs and a new one when the elapsed bucket or frame changes; a label containing `<script>` is escaped.
+- **render**: golden SVG strings for each status, a two-line label, a pinned work-profile key, the pager, empty, off; the cache returns the same string for the same inputs and a new one when the elapsed bucket or frame changes; a label containing `<script>` is escaped; the context bar's thresholds and absence; `SLOW`; the note over the detail; the approve, prompt and budget faces.
+- **prompt / answer / outcome**: `sendCommand` and `answerCommand` argument arrays; preset and Enter resolution; the fallback keys per answer; `typeTextCommands` escaping per platform; `outcomeOf` reading ok / error / keyboard and a fresh notice; the hold detector.
 - **watcher**: an atomic rename of the fixture triggers exactly one `board` event; a corrupt file keeps the previous board; a `daemonDown` CLI result emits `daemon:false` and a later success emits `daemon:true`.
 - **cli**: resolver order with a fake filesystem; `--json` parsing; exit 1 + "not running" → `daemonDown`; arguments are passed as an array, never joined.
 

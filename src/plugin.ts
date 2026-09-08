@@ -1,7 +1,9 @@
 import streamDeck from "@elgato/streamdeck";
 
+import { BudgetAction } from "./actions/budget";
+import { PromptAction } from "./actions/prompt";
 import { SlotAction } from "./actions/slot";
-import { sendKeystroke, TalkAction } from "./actions/talk";
+import { sendKeystroke, TalkAction, typeText } from "./actions/talk";
 import { Layout } from "./board/layout";
 import { BoardWatcher } from "./board/watcher";
 import { Corgi } from "./corgi/cli";
@@ -34,9 +36,13 @@ let chord = defaultChord;
 let panelChord = defaultPanelChord;
 let panelSend = { key: "enter", delayMs: 1500 };
 const talk = new TalkAction({ watcher, corgi, log, sendKeystroke, lastFocused: () => slot.lastFocused(), chord: () => chord, panelChord: () => panelChord, panelSend: () => panelSend });
+const prompt = new PromptAction({ watcher, corgi, log, typeText, lastFocused: () => slot.lastFocused() });
+const budget = new BudgetAction({ watcher, corgi, log, openUrl: (url) => streamDeck.system.openUrl(url), sendToPropertyInspector: (payload) => streamDeck.ui.sendToPropertyInspector(payload) });
 
 streamDeck.actions.registerAction(slot);
 streamDeck.actions.registerAction(talk);
+streamDeck.actions.registerAction(prompt);
+streamDeck.actions.registerAction(budget);
 
 // The pulse for keys that need a person: one timer for the whole board,
 // running only while such a key is on screen.
@@ -96,6 +102,8 @@ async function syncBoardSize(): Promise<void> {
 watcher.on("board", (board) => {
 	slot.redraw();
 	talk.onBoard(board);
+	prompt.redraw();
+	budget.redraw();
 	syncPulse();
 	syncTicker();
 	void syncBoardSize();
@@ -104,6 +112,8 @@ watcher.on("daemon", (running) => {
 	log.info(running ? "corgi agent is running" : "corgi agent is not running — keys go dim until it is");
 	slot.redraw();
 	talk.redraw();
+	prompt.redraw();
+	budget.redraw();
 	syncPulse();
 	syncTicker();
 });

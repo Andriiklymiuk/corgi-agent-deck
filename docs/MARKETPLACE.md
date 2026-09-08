@@ -36,11 +36,15 @@ release workflow produces the `.streamDeckPlugin`; a person uploads it.
 - **Name:** Corgi Agent Deck
 - **Tagline:** Every Claude Code session on its own key.
 - **Description:** the first two paragraphs of README.md.
+- **Actions:** Session (the board key), Talk (dictation; answers a
+  permission prompt when one is waiting), Prompt (a canned line), Budget
+  (one account's five-hour ring and seven-day bar).
 - **Keywords:** claude, claude code, ai, agent, terminal, vs code, corgi
 - **Media** (all from `npm run showcase`, in `docs/media/store/`):
   - Icon (288×288): `icon-288.png`
   - Thumbnail (1920×960): `mk2.png`
-  - Gallery (1920×960, three or more): `mini.png`, `talk.png`, `states.png`,
-    and `mk2.png` again; `pulse.mp4` (1920×1080) as the video item.
+  - Gallery (1920×960, three or more): `mini.png`, `talk.png` (Talk
+    answering a permission, Prompt and Budget keys), `states.png`, and
+    `mk2.png` again; `pulse.mp4` (1920×1080) as the video item.
 - **Requirements to state:** macOS 12+, Stream Deck app 7.1+, corgi
   (`brew install andriiklymiuk/homebrew-tools/corgi`), Claude Code.

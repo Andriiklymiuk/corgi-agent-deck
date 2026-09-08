@@ -1,18 +1,22 @@
-import { action, type KeyAction, type KeyDownEvent, SingletonAction, type WillAppearEvent, type WillDisappearEvent } from "@elgato/streamdeck";
+import { action, type KeyAction, type KeyDownEvent, type KeyUpEvent, SingletonAction, type WillAppearEvent, type WillDisappearEvent } from "@elgato/streamdeck";
 import { execFile } from "node:child_process";
 
+import { awaitOutcome } from "../board/outcome";
 import type { BoardWatcher } from "../board/watcher";
 import type { Corgi } from "../corgi/cli";
 import type { Board, Session } from "../corgi/types";
-import { renderTalkKey, type TalkState } from "../render/key";
-import { defaultChord, defaultPanelChord, keystrokeCommand } from "../talk/chord";
+import { type Approve, renderTalkKey, type TalkState } from "../render/key";
+import { defaultChord, defaultPanelChord, type KeystrokeCommand, keystrokeCommand, typeTextCommands } from "../talk/chord";
+import { HoldDetector } from "./hold";
 
 export const talkUUID = "com.andriiklymiuk.corgi-agent-deck.talk";
 
-/** How long a focus may take before the chord is not sent. */
-const focusBudgetMs = 1500;
+/** How long a focus or a send may take before the board is assumed silent. */
+export const focusBudgetMs = 1500;
 /** Claude Code stops a tap-mode recording after two minutes on its own. */
 const recordingCapMs = 2 * 60 * 1000;
+
+export type Answer = "allow" | "always" | "deny";
 
 export interface TalkDeps {
 	watcher: BoardWatcher;
@@ -30,15 +34,21 @@ export interface TalkDeps {
 }
 
 /**
- * Dictate into a session. Press: focus the session (the one in the window
- * in front, else the one last pressed on the deck, else the one that needs
- * you when exactly one does), wait for the board to confirm the focus
- * landed, then tap Claude Code's dictation chord. Press again: the same chord, which in tap mode sends the prompt.
+ * Dictate into a session, or answer its permission prompt.
  *
- * Claude Code does the recording and transcription; corgi does the
- * focusing; this key only presses one chord in the right window. It has no
- * way to see the recording, so REC is optimistic: it clears when the
- * session starts working or after Claude Code's own two-minute cap.
+ * Talk: focus the session (the one in the window in front, else the one
+ * last pressed on the deck, else the one that needs you when exactly one
+ * does), wait for the board to confirm the focus landed, then tap Claude
+ * Code's dictation chord. Press again: the same chord, which in tap mode
+ * sends the prompt. Claude Code does the recording and transcription; corgi
+ * does the focusing; this key only presses one chord in the right window.
+ * It has no way to see the recording, so REC is optimistic: it clears when
+ * the session starts working or after Claude Code's own two-minute cap.
+ *
+ * Approve: while that session waits on a permission, the key turns red with
+ * the tool and its subject. A press allows (`corgi agent answer`), a hold
+ * denies. corgi refuses a risky command, and a panel session takes no text
+ * from corgi, so the key presses the keys itself once the window is up.
  */
 @action({ UUID: talkUUID })
 export class TalkAction extends SingletonAction {
@@ -46,6 +56,13 @@ export class TalkAction extends SingletonAction {
 	private state: TalkState = "idle";
 	private recording: { sessionId: string; since: number; clear: NodeJS.Timeout } | undefined;
 	private readonly drawn = new Map<string, string>();
+	private readonly hold = new HoldDetector((actionId, kind, at) => {
+		const key = this.instances.get(actionId);
+		const target = this.approveTarget();
+		if (key && target) {
+			void this.answer(key, target.sessionId, kind === "long" ? "deny" : "allow", at);
+		}
+	});
 
 	constructor(private readonly deps: TalkDeps) {
 		super();
@@ -61,6 +78,7 @@ export class TalkAction extends SingletonAction {
 	override onWillDisappear(ev: WillDisappearEvent): void {
 		this.instances.delete(ev.action.id);
 		this.drawn.delete(ev.action.id);
+		this.hold.cancel(ev.action.id);
 	}
 
 	override async onKeyDown(ev: KeyDownEvent): Promise<void> {
@@ -69,6 +87,10 @@ export class TalkAction extends SingletonAction {
 		}
 		if (!this.deps.watcher.daemonRunning()) {
 			await ev.action.showAlert().catch(() => undefined);
+			return;
+		}
+		if (!this.recording && this.approveTarget()) {
+			this.hold.down(ev.action.id); // allow on release, deny on a hold
 			return;
 		}
 		if (this.recording) {
@@ -100,6 +122,44 @@ export class TalkAction extends SingletonAction {
 		}
 	}
 
+	override onKeyUp(ev: KeyUpEvent): void {
+		this.hold.up(ev.action.id);
+	}
+
+	/** The permission the key would answer now: the picked session's, while it waits on one. */
+	private approveTarget(): (Approve & { sessionId: string }) | undefined {
+		return approveFor(this.deps.watcher.current(), this.deps.lastFocused());
+	}
+
+	/** `corgi agent answer`; a panel session gets the same keys from here once its window is up. */
+	private async answer(key: KeyAction, sessionId: string, answer: Answer, at: number): Promise<void> {
+		this.deps.log.debug(`talk: answer ${answer} for ${sessionId}`);
+		const result = await this.deps.corgi.run(answerCommand(sessionId, answer));
+		if (!result.ok) {
+			this.deps.log.warn(`talk: answer failed: ${result.stderr.trim()}`);
+			await key.showAlert().catch(() => undefined);
+			return;
+		}
+		const outcome = await awaitOutcome(this.deps.watcher, sessionId, at, focusBudgetMs);
+		if (outcome.kind === "error") {
+			this.deps.log.info(`talk: answer refused: ${outcome.message}`);
+			await key.showAlert().catch(() => undefined);
+			return;
+		}
+		if (outcome.kind === "keyboard") {
+			if (!(await this.focus(sessionId))) {
+				await key.showAlert().catch(() => undefined);
+				return;
+			}
+			for (const chord of fallbackChords(answer)) {
+				if (!(await this.tap(key, sessionId, chord))) {
+					return;
+				}
+			}
+		}
+		await key.showOk().catch(() => undefined);
+	}
+
 	/** Focus the session and wait for the board to say it landed. */
 	private async focus(sessionId: string): Promise<boolean> {
 		const pressedAt = Date.now();
@@ -108,22 +168,12 @@ export class TalkAction extends SingletonAction {
 			this.deps.log.warn(`talk: focus failed: ${result.stderr.trim()}`);
 			return false;
 		}
-		return new Promise<boolean>((resolve) => {
-			const done = (ok: boolean): void => {
-				clearTimeout(timer);
-				this.deps.watcher.off("board", check);
-				resolve(ok);
-			};
-			const check = (board: Board): void => {
-				const session = board.sessions.find((s) => s.id === sessionId);
-				if (!session?.focusAt || Date.parse(session.focusAt) < pressedAt - 1000) {
-					return;
-				}
-				done(!session.focusError);
-			};
-			const timer = setTimeout(() => done(true), focusBudgetMs); // no word from corgi: assume the window is up
-			this.deps.watcher.on("board", check);
-		});
+		const outcome = await awaitOutcome(this.deps.watcher, sessionId, pressedAt, focusBudgetMs);
+		if (outcome.kind === "error") {
+			this.deps.log.warn(`talk: focus failed: ${outcome.message}`);
+			return false;
+		}
+		return true;
 	}
 
 	private async tap(key: KeyAction, sessionId: string, override?: string): Promise<boolean> {
@@ -185,8 +235,9 @@ export class TalkAction extends SingletonAction {
 	}
 
 	redraw(): void {
-		const state: TalkState = this.deps.watcher.daemonRunning() ? this.state : "off";
-		const image = renderTalkKey(state);
+		const running = this.deps.watcher.daemonRunning();
+		const state: TalkState = running ? this.state : "off";
+		const image = renderTalkKey(state, running && !this.recording ? this.approveTarget() : undefined);
 		for (const [id, key] of this.instances) {
 			if (this.drawn.get(id) === image) {
 				continue;
@@ -229,21 +280,41 @@ export function pickSession(board: Board | undefined, lastFocused: string | unde
 	return latest?.id;
 }
 
+/** The permission prompt the talk key answers: the picked session's, while it is what the session waits on. */
+export function approveFor(board: Board | undefined, lastFocused: string | undefined): (Approve & { sessionId: string }) | undefined {
+	const sessionId = pickSession(board, lastFocused);
+	const session = sessionId ? board?.sessions.find((s) => s.id === sessionId) : undefined;
+	if (!session?.pending || session.status !== "needs_input") {
+		return undefined;
+	}
+	return { sessionId: session.id, tool: session.pending.tool, subject: session.pending.subject };
+}
+
+export function answerCommand(sessionId: string, answer: Answer): string[] {
+	return ["agent", "answer", sessionId, answer];
+}
+
+/** What the key presses itself when corgi cannot type into the session: Claude Code's own permission keys. */
+export function fallbackChords(answer: Answer): string[] {
+	switch (answer) {
+		case "allow":
+			return ["enter"];
+		case "always":
+			return ["2", "enter"];
+		case "deny":
+			return ["escape"];
+	}
+}
+
 /** The panel has its own dictation shortcut; a terminal session takes the keybindings.json chord. */
 export function chordFor(board: Board | undefined, sessionId: string, chord: string, panelChord: string): string {
 	const session = board?.sessions.find((s) => s.id === sessionId);
 	return session?.host.kind === "vscode-panel" ? panelChord : chord;
 }
 
-/** Presses a chord with the platform's tool: osascript on macOS (needs Accessibility for the Stream Deck app), xdotool, or SendKeys. */
-export function sendKeystroke(chord: string): Promise<void> {
+function runCommand(command: KeystrokeCommand): Promise<void> {
 	return new Promise((resolve, reject) => {
-		const command = keystrokeCommand(chord);
-		if (!command) {
-			reject(new Error(`cannot send "${chord}" on ${process.platform}`));
-			return;
-		}
-		execFile(command.file, command.args, { timeout: 3000 }, (error, _stdout, stderr) => {
+		execFile(command.file, command.args, { timeout: 5000 }, (error, _stdout, stderr) => {
 			if (error) {
 				reject(new Error(String(stderr || error.message).trim()));
 			} else {
@@ -251,6 +322,26 @@ export function sendKeystroke(chord: string): Promise<void> {
 			}
 		});
 	});
+}
+
+/** Presses a chord with the platform's tool: osascript on macOS (needs Accessibility for the Stream Deck app), xdotool, or SendKeys. */
+export function sendKeystroke(chord: string): Promise<void> {
+	const command = keystrokeCommand(chord);
+	if (!command) {
+		return Promise.reject(new Error(`cannot send "${chord}" on ${process.platform}`));
+	}
+	return runCommand(command);
+}
+
+/** Types text into the front window, then Enter when asked, through the same tools as the chord. */
+export async function typeText(text: string, enter: boolean): Promise<void> {
+	const commands = typeTextCommands(text, enter);
+	if (!commands) {
+		throw new Error(`cannot type text on ${process.platform}`);
+	}
+	for (const command of commands) {
+		await runCommand(command);
+	}
 }
 
 export { defaultChord, defaultPanelChord };

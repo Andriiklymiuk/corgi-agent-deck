@@ -1,4 +1,63 @@
 {
+  "accounts": [
+    {
+      "forecast": {
+        "fiveHour": {
+          "exhaustAt": "2026-09-08T10:20:00.000000000Z",
+          "percentPerHour": 12.5,
+          "safe": true,
+          "samples": 6
+        },
+        "sevenDay": {
+          "percentPerHour": 0.4,
+          "safe": true,
+          "samples": 6
+        }
+      },
+      "limits": {
+        "fetchedAt": "2026-09-08T04:40:00.000000000Z",
+        "fiveHour": {
+          "percent": 29,
+          "resetsAt": "2026-09-08T09:30:00.000000000Z"
+        },
+        "sevenDay": {
+          "percent": 15,
+          "resetsAt": "2026-09-15T06:00:00.000000000Z"
+        }
+      },
+      "profile": "default",
+      "sessions": 4
+    },
+    {
+      "configDir": "/home/me/.claude-work",
+      "forecast": {
+        "fiveHour": {
+          "exhaustAt": "2026-09-08T05:05:00.000000000Z",
+          "percentPerHour": 30,
+          "safe": false,
+          "samples": 4
+        },
+        "sevenDay": {
+          "percentPerHour": 1.1,
+          "safe": true,
+          "samples": 4
+        }
+      },
+      "limits": {
+        "fetchedAt": "2026-09-08T04:39:00.000000000Z",
+        "fiveHour": {
+          "percent": 88,
+          "resetsAt": "2026-09-08T07:10:00.000000000Z"
+        },
+        "sevenDay": {
+          "percent": 64,
+          "resetsAt": "2026-09-12T18:00:00.000000000Z"
+        }
+      },
+      "profile": "work",
+      "sessions": 1
+    }
+  ],
   "daemonRunning": true,
   "frontSession": "5b1c2e7a-acme",
   "frontWindow": "w1",
@@ -15,8 +74,15 @@
       ],
       "claudePid": 4101,
       "configDir": "/home/me/.claude-work",
+      "context": {
+        "at": "2026-09-08T04:31:30.000000000Z",
+        "model": "claude-opus-4-1",
+        "percent": 42,
+        "tokens": 84000,
+        "window": 200000
+      },
       "cwd": "/home/me/dev/acme-api",
-      "detail": "Claude needs your permission to use Bash",
+      "detail": "permission: Bash go test",
       "display": "acme-api",
       "focusAt": "0001-01-01T00:00:00Z",
       "host": {
@@ -32,6 +98,11 @@
       "id": "5b1c2e7a-acme",
       "label": "acme-api",
       "lastActivity": "2026-09-08T04:40:51.978461568Z",
+      "pending": {
+        "at": "2026-09-08T04:31:33.978409455Z",
+        "subject": "go test",
+        "tool": "Bash"
+      },
       "profile": "work",
       "startedAt": "2026-09-08T04:31:03.978409455Z",
       "status": "needs_input",
@@ -47,8 +118,15 @@
         3000
       ],
       "claudePid": 4102,
+      "context": {
+        "at": "2026-09-08T04:32:30.000000000Z",
+        "model": "claude-opus-4-1",
+        "percent": 71,
+        "tokens": 142000,
+        "window": 200000
+      },
       "cwd": "/home/me/dev/web",
-      "detail": "Edit",
+      "detail": "Edit registry.go",
       "display": "web",
       "focusAt": "0001-01-01T00:00:00Z",
       "host": {
@@ -68,6 +146,7 @@
       "startedAt": "2026-09-08T04:32:03.978409455Z",
       "status": "working",
       "statusSince": "2026-09-08T04:32:33.978409455Z",
+      "stuck": true,
       "termProgram": "vscode",
       "tool": "Edit",
       "window": "w1"
@@ -79,6 +158,13 @@
         2400
       ],
       "claudePid": 4103,
+      "context": {
+        "at": "2026-09-08T04:33:00.000000000Z",
+        "model": "claude-sonnet-4-5",
+        "percent": 90,
+        "tokens": 180000,
+        "window": 200000
+      },
       "cwd": "/home/me/dev/mobile",
       "display": "mobile",
       "focusAt": "0001-01-01T00:00:00Z",
@@ -89,11 +175,13 @@
       "id": "c77e0b19-mobile",
       "label": "mobile",
       "lastActivity": "2026-09-08T04:33:33.978409455Z",
+      "note": "waiting on review",
       "profile": "default",
       "startedAt": "2026-09-08T04:33:03.978409455Z",
       "status": "done",
       "statusSince": "2026-09-08T04:33:03.978409455Z",
-      "termProgram": "iTerm.app"
+      "termProgram": "iTerm.app",
+      "title": "mobile release"
     },
     {
       "ancestors": [
@@ -198,18 +286,21 @@
   "size": 6,
   "slots": [
     {
-      "detail": "Claude needs your permission to use Bash",
+      "context": 42,
+      "detail": "permission: Bash go test",
       "elapsedS": 570,
       "focusAt": "0001-01-01T00:00:00Z",
       "host": "vscode-terminal",
       "index": 0,
       "label": "acme-api",
+      "pending": "Bash",
       "profile": "work",
       "sessionId": "5b1c2e7a-acme",
       "status": "needs_input"
     },
     {
-      "detail": "Edit",
+      "context": 71,
+      "detail": "Edit registry.go",
       "elapsedS": 510,
       "focusAt": "0001-01-01T00:00:00Z",
       "host": "vscode-terminal",
@@ -218,14 +309,17 @@
       "pinned": true,
       "profile": "default",
       "sessionId": "9f30d1aa-web",
-      "status": "working"
+      "status": "working",
+      "stuck": true
     },
     {
+      "context": 90,
       "elapsedS": 480,
       "focusAt": "0001-01-01T00:00:00Z",
       "host": "iterm",
       "index": 2,
       "label": "mobile",
+      "note": "waiting on review",
       "profile": "default",
       "sessionId": "c77e0b19-mobile",
       "status": "done"

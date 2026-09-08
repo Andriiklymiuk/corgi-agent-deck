@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+    <title>Corgi Agent Deck — Prompt</title>
+    <meta charset="utf-8" />
+    <script src="https://sdpi-components.dev/releases/v4/sdpi-components.js"></script>
+</head>
+
+<body>
+    <sdpi-item label="Preset">
+        <sdpi-select setting="preset" default="custom">
+            <option value="continue">continue</option>
+            <option value="tests">run the tests and fix what fails</option>
+            <option value="compact">/compact</option>
+            <option value="commit">commit with a good message</option>
+            <option value="custom">custom (the text below)</option>
+        </sdpi-select>
+    </sdpi-item>
+    <sdpi-item label="Text">
+        <sdpi-textarea setting="text" rows="3" placeholder="used when the preset is custom"></sdpi-textarea>
+    </sdpi-item>
+    <sdpi-item label="Send">
+        <sdpi-checkbox setting="enter" default="true" label="press Enter after the text"></sdpi-checkbox>
+    </sdpi-item>
+    <sdpi-item label="">
+        <div style="font-size: 11px; opacity: .8; line-height: 1.5;">
+            A press types the text into the session in front of you — the one in the editor window you are looking at,
+            else the key you last pressed, else the only one that needs you — through <code>corgi agent send</code>.
+            The Claude Code panel takes no text from corgi, so there the key focuses the chat and types the text
+            itself; that needs Accessibility for the Stream Deck app, like the Talk key.
+        </div>
+    </sdpi-item>
+</body>
+
+</html>

@@ -1,10 +1,10 @@
 # Corgi Agent Deck
 
-Every Claude Code session on your Mac on its own Stream Deck key. Amber while it works, red and pulsing when it needs you, green when it's done. Press a key and that session's window and terminal tab come to the front. Hold to pin. An empty key opens a new session.
+Every Claude Code session on your Mac on its own Stream Deck key. Amber while it works, red and pulsing when it needs you, green when it's done, its context window as a bar along the bottom. Press a key and that session's window and terminal tab come to the front. Hold to pin. An empty key opens a new session. A permission prompt turns the Talk key red: press to allow, hold to deny. Prompt keys type a canned line; a Budget key shows how much of the account's five hours is gone.
 
 Corgi Agent Deck draws the board that [corgi](https://github.com/Andriiklymiuk/corgi) keeps (`corgi agent track`) and turns presses into `corgi agent …` commands. It holds no state of its own.
 
-![Corgi Agent Deck on a Stream Deck MK.2: working, needs you, done, limit, idle, closed, a +2 pager, empty keys and the Talk key](docs/media/deck-mk2.png)
+![Corgi Agent Deck on a Stream Deck MK.2: working, needs you, done, limit, idle, closed, slow, a note, a +2 pager, an empty key, the Talk key answering a permission, two Prompt keys and two Budget keys](docs/media/deck-mk2.png)
 
 <p align="center"><img src="docs/media/deck-pulse.gif" width="720" alt="A key that needs you pulses; elapsed times keep counting"></p>
 
@@ -55,7 +55,7 @@ Then **quit and reopen the Stream Deck app**: it scans plugins only at start. (`
 
 Stream Deck never places keys for you. In the app, right panel → **Keys** tab (not *Plugins*, that is the store) → scroll to **Corgi Agent Deck** → drag **Session** onto a key. Repeat for every key you want (right-click a key → Copy, then Paste on the empty ones). Their order on the deck is their order on the board. Add one **Talk** key if you want dictation.
 
-Keys paint within a second. If they stay blank, read `com.andriiklymiuk.corgi-agent-deck.sdPlugin/logs/`.
+Keys paint within a second. If they stay blank, read `com.andriiklymiuk.corgi-agent-deck.sdPlugin/logs/`. Add **Prompt** keys for the lines you type most and a **Budget** key per Claude account.
 
 ## Keys
 
@@ -64,16 +64,34 @@ Keys paint within a second. If they stay blank, read `com.andriiklymiuk.corgi-ag
 | a session | focus its window and tab | working or waiting: pin / unpin · finished (DONE, LIMIT, IDLE, CLOSED): dismiss until its next event · pinned: unpin |
 | `+N` | next page | previous page |
 | empty | new Claude session in the editor window in front, under that folder's account (`corgi agent claude`) | rescan for untracked sessions |
+| Talk, red with ALLOW | allow the permission the session in front is waiting on | deny it |
+| Talk | start dictating; press again to send | — |
+| Prompt | type its text into the session in front, then Enter | — |
+| Budget | open corgi's dashboard when the daemon publishes one | — |
 
-Statuses: **WORKING** (amber), **NEEDS YOU** (red, pulsing: a permission prompt, a question, an API failure), **DONE** (green), **LIMIT** (blue: the account hit its usage limit; the key says when it resets), **IDLE** (30 min quiet), **CLOSED** (a pinned key whose session exited). A profile chip (`WK`) marks sessions under another Claude account. A key flashes ⚠ once when a press could not land; `corgi agent doctor` says why.
+Statuses: **WORKING** (amber), **SLOW** (amber: working but silent for 12 minutes), **NEEDS YOU** (red, pulsing: a permission prompt, a question, an API failure), **DONE** (green), **LIMIT** (blue: the account hit its usage limit; the key says when it resets), **IDLE** (30 min quiet), **CLOSED** (a pinned key whose session exited). The line under the label is what the session is doing (`Edit registry.go`, `Bash go test`) — or your own note, once you set one with `corgi agent note <session> "waiting on review"`. The bar along the bottom is the context window: grey, amber past 60 %, red past 85 %, absent until the first turn finishes. A profile chip (`WK`) marks sessions under another Claude account; the elapsed time sits top right. A key flashes ⚠ once when a press could not land; `corgi agent doctor` says why.
+
+Font size: labels are 24 px on the 144 px key (14 px status word, 13 px detail), sized to be read from a desk. Long labels wrap at `-`, `_`, `·` or `/` and ellipsize; the detail line ellipsizes at 15 characters.
 
 When a session needs you but has no key of its own, the `+N` key turns red and says how many. Elapsed times keep counting between corgi's updates.
+
+## Approving a permission
+
+When the session in front of you (the same pick as Talk, below) waits on a permission, the **Talk** key turns red: **ALLOW**, the tool and what it wants (`Bash` · `go test`). Press to allow, hold to deny; the key runs `corgi agent answer <session> allow|deny`, which focuses the session and presses Claude Code's own keys. corgi refuses to allow a Bash command it recognises as risky (`rm`, `sudo`, `--force`, …) — the key flashes ⚠ and you go look. Sessions in the Claude Code panel take no keystrokes from corgi, so there the key presses them itself after the focus lands (Accessibility for the Stream Deck app, as for dictation). With nothing pending it is the ordinary Talk key.
+
+## Prompt keys
+
+Drag a **Prompt** key onto the deck and pick a preset in its settings — *continue*, *run the tests and fix what fails*, */compact*, *commit with a good message* — or write your own text; Enter follows unless you turn it off. The key shows the first word or two (`run the`, `/compact`). A press types the text into the session in front of you through `corgi agent send`; a panel session gets it typed by the key itself, like the approve fallback.
+
+## Budget key
+
+A **Budget** key is one Claude account's usage: a ring for the five-hour window with the percentage inside, a bar for the seven-day one, and `resets 4:10pm`. Pick the account in the key's settings (the list comes from the board; you can also type a profile name). It turns blue with `LIMIT` when a session under that account hit the limit, and the ring goes red when, at the current pace, the window runs out before it resets. The numbers are what Claude Code last fetched for that account (`/usage`, `corgi agent usage`), so they are as fresh as its last session. A press opens corgi's dashboard when the daemon publishes one.
 
 When the corgi daemon is not running every key reads `corgi OFF`; the plugin never starts it.
 
 ## Talk key
 
-Drag a **Talk** key onto the deck to dictate into the session in front of you (the one in the editor window you are looking at, or the one you last pressed): press to talk, press again to send. Claude Code does the recording; the key only focuses the session and presses its dictation chord. One-time setup in Claude Code:
+Drag a **Talk** key onto the deck to dictate into the session in front of you (the one in the editor window you are looking at, or the one you last pressed): press to talk, press again to send. (While that session waits on a permission the same key answers it instead; see above.) Claude Code does the recording; the key only focuses the session and presses its dictation chord. One-time setup in Claude Code:
 
 ```
 /voice tap

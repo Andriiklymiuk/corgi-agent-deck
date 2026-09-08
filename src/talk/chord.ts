@@ -138,3 +138,64 @@ export function keystrokeCommand(chord: string, platform: NodeJS.Platform = proc
 			return undefined;
 	}
 }
+
+/** Text quoted for AppleScript: backslashes and quotes escaped, line breaks spelled out. */
+export function appleScriptString(text: string): string {
+	let out = '"';
+	for (const ch of text) {
+		if (ch === "\\") {
+			out += "\\\\";
+		} else if (ch === '"') {
+			out += '\\"';
+		} else if (ch === "\n" || ch === "\r") {
+			out += '" & return & "';
+		} else {
+			out += ch;
+		}
+	}
+	return out + '"';
+}
+
+/** SendKeys treats these as syntax; each one goes in braces. */
+function sendKeysText(text: string): string {
+	return text.replace(/[+^%~(){}[\]]/g, (c) => `{${c}}`);
+}
+
+/**
+ * The commands that type text into the front window and, when asked, press
+ * Enter after it: one osascript on macOS, xdotool on Linux, SendKeys on
+ * Windows. Undefined when the platform has no way to type.
+ */
+export function typeTextCommands(text: string, enter: boolean, platform: NodeJS.Platform = process.platform): KeystrokeCommand[] | undefined {
+	switch (platform) {
+		case "darwin": {
+			const lines: string[] = [];
+			if (text) {
+				lines.push(`tell application "System Events" to keystroke ${appleScriptString(text)}`);
+			}
+			if (enter) {
+				lines.push('tell application "System Events" to key code 36');
+			}
+			return lines.length === 0 ? [] : [{ file: "osascript", args: lines.flatMap((line) => ["-e", line]) }];
+		}
+		case "linux": {
+			const commands: KeystrokeCommand[] = [];
+			if (text) {
+				commands.push({ file: "xdotool", args: ["type", "--clearmodifiers", "--", text] });
+			}
+			if (enter) {
+				commands.push({ file: "xdotool", args: ["key", "Return"] });
+			}
+			return commands;
+		}
+		case "win32": {
+			const keys = sendKeysText(text) + (enter ? "{ENTER}" : "");
+			if (!keys) {
+				return [];
+			}
+			return [{ file: "powershell", args: ["-NoProfile", "-Command", `Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait('${keys.replace(/'/g, "''")}')`] }];
+		}
+		default:
+			return undefined;
+	}
+}
