@@ -12,7 +12,7 @@ const keys: Record<string, KeyInput> = {
 	working: { index: 0, sessionId: "a", label: "corgi", profile: "default", status: "working", elapsedS: 15, detail: "Bash", host: "vscode-panel" },
 	needs: { index: 1, sessionId: "b", label: "acme-api", profile: "work", status: "needs_input", elapsedS: 540, detail: "permission: Bash", host: "vscode-terminal" },
 	done: { index: 2, sessionId: "c", label: "agent-deck", profile: "default", status: "done", elapsedS: 660, host: "vscode-panel" },
-	limited: { index: 3, sessionId: "d", label: "onboarding", profile: "skp", status: "limited", elapsedS: 120, detail: "resets 1:10pm", host: "vscode-terminal" },
+	limited: { index: 3, sessionId: "d", label: "mobile", profile: "work", status: "limited", elapsedS: 120, detail: "resets 1:10pm", host: "vscode-terminal" },
 	idle: { index: 4, sessionId: "e", label: "billing", profile: "default", status: "stale", elapsedS: 1900, host: "iterm" },
 	closed: { index: 5, sessionId: "f", label: "infra", profile: "default", status: "gone", pinned: true, elapsedS: 3000, host: "vscode-terminal" },
 	pager: { index: 6, pager: true, overflow: 2, hiddenNeeds: 1 },
