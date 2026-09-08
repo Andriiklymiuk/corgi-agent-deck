@@ -1,0 +1,61 @@
+{
+	"Name": "Agent Deck",
+	"Version": "0.1.0.0",
+	"Author": "Andrii Klymiuk",
+	"Actions": [
+		{
+			"Name": "Session",
+			"UUID": "com.andriiklymiuk.agent-deck.slot",
+			"Icon": "imgs/actions/slot/icon",
+			"Tooltip": "One Claude Code session per key: press to focus its window, long-press to pin. Drop as many as you have keys.",
+			"PropertyInspectorPath": "ui/slot.html",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/slot/key",
+					"TitleAlignment": "middle"
+				}
+			],
+			"UserTitleEnabled": false
+		},
+		{
+			"Name": "Talk",
+			"UUID": "com.andriiklymiuk.agent-deck.talk",
+			"Icon": "imgs/actions/slot/icon",
+			"Tooltip": "Dictate into the session you last pressed: press to talk, press again to send. Needs /voice tap in Claude Code and the dictation chord bound (default alt+v).",
+			"PropertyInspectorPath": "ui/slot.html",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/slot/key",
+					"TitleAlignment": "middle"
+				}
+			],
+			"UserTitleEnabled": false
+		}
+	],
+	"Category": "Agent Deck",
+	"CategoryIcon": "imgs/plugin/category-icon",
+	"CodePath": "bin/plugin.js",
+	"Description": "Every Claude Code session on this Mac on its own key: working, needs you, done. Press to focus the window and terminal tab; long-press to pin. Powered by corgi agent.",
+	"Icon": "imgs/plugin/marketplace",
+	"SDKVersion": 3,
+	"Software": {
+		"MinimumVersion": "7.1"
+	},
+	"OS": [
+		{
+			"Platform": "mac",
+			"MinimumVersion": "12"
+		}
+	],
+	"Nodejs": {
+		"Version": "24",
+		"Debug": "enabled"
+	},
+	"UUID": "com.andriiklymiuk.agent-deck"
+}

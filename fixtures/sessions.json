@@ -1,0 +1,285 @@
+{
+  "daemonRunning": true,
+  "needsInput": 1,
+  "noticeAt": "0001-01-01T00:00:00Z",
+  "overflow": 2,
+  "path": "/Users/me/Library/Application Support/corgi/agent/sessions.json",
+  "sessions": [
+    {
+      "ancestors": [
+        4101,
+        4001,
+        3000
+      ],
+      "claudePid": 4101,
+      "configDir": "/home/me/.claude-work",
+      "cwd": "/home/me/dev/acme-api",
+      "detail": "Claude needs your permission to use Bash",
+      "display": "acme-api",
+      "focusAt": "0001-01-01T00:00:00Z",
+      "host": {
+        "app": "Visual Studio Code",
+        "connected": true,
+        "folder": "/home/me/dev/acme-api",
+        "kind": "vscode-terminal",
+        "shellPid": 4001,
+        "termProgram": "vscode",
+        "terminal": "zsh",
+        "windowId": "w1"
+      },
+      "id": "5b1c2e7a-acme",
+      "label": "acme-api",
+      "lastActivity": "2026-09-08T04:40:51.978461568Z",
+      "profile": "work",
+      "startedAt": "2026-09-08T04:31:03.978409455Z",
+      "status": "needs_input",
+      "statusSince": "2026-09-08T04:31:33.978409455Z",
+      "termProgram": "vscode",
+      "tool": "Bash",
+      "window": "w1"
+    },
+    {
+      "ancestors": [
+        4102,
+        4002,
+        3000
+      ],
+      "claudePid": 4102,
+      "cwd": "/home/me/dev/web",
+      "detail": "Edit",
+      "display": "web",
+      "focusAt": "0001-01-01T00:00:00Z",
+      "host": {
+        "app": "Visual Studio Code",
+        "connected": true,
+        "folder": "/home/me/dev/acme-api",
+        "kind": "vscode-terminal",
+        "shellPid": 4002,
+        "termProgram": "vscode",
+        "terminal": "zsh 2",
+        "windowId": "w1"
+      },
+      "id": "9f30d1aa-web",
+      "label": "web",
+      "lastActivity": "2026-09-08T04:32:33.978409455Z",
+      "profile": "default",
+      "startedAt": "2026-09-08T04:32:03.978409455Z",
+      "status": "working",
+      "statusSince": "2026-09-08T04:32:33.978409455Z",
+      "termProgram": "vscode",
+      "tool": "Edit",
+      "window": "w1"
+    },
+    {
+      "ancestors": [
+        4103,
+        2500,
+        2400
+      ],
+      "claudePid": 4103,
+      "cwd": "/home/me/dev/mobile",
+      "display": "mobile",
+      "focusAt": "0001-01-01T00:00:00Z",
+      "host": {
+        "kind": "iterm",
+        "termProgram": "iTerm.app"
+      },
+      "id": "c77e0b19-mobile",
+      "label": "mobile",
+      "lastActivity": "2026-09-08T04:33:33.978409455Z",
+      "profile": "default",
+      "startedAt": "2026-09-08T04:33:03.978409455Z",
+      "status": "done",
+      "statusSince": "2026-09-08T04:33:03.978409455Z",
+      "termProgram": "iTerm.app"
+    },
+    {
+      "ancestors": [
+        4104,
+        3000
+      ],
+      "claudePid": 4104,
+      "cwd": "/home/me/dev/infra-terraform",
+      "display": "infra-terraform",
+      "focusAt": "0001-01-01T00:00:00Z",
+      "host": {
+        "app": "Visual Studio Code",
+        "connected": true,
+        "folder": "/home/me/dev/acme-api",
+        "kind": "vscode-panel",
+        "windowId": "w1"
+      },
+      "id": "a1d4e6f2-infra",
+      "label": "infra-terraform",
+      "lastActivity": "2026-09-08T04:34:33.978409455Z",
+      "profile": "default",
+      "startedAt": "2026-09-08T04:34:03.978409455Z",
+      "status": "done",
+      "statusSince": "2026-09-08T04:34:03.978409455Z"
+    },
+    {
+      "ancestors": [
+        4105,
+        4003,
+        3000
+      ],
+      "claudePid": 4105,
+      "cwd": "/home/me/dev/docs",
+      "display": "docs",
+      "focusAt": "0001-01-01T00:00:00Z",
+      "host": {
+        "app": "Visual Studio Code",
+        "connected": true,
+        "folder": "/home/me/dev/acme-api",
+        "kind": "vscode-terminal",
+        "shellPid": 4003,
+        "termProgram": "vscode",
+        "terminal": "docs",
+        "windowId": "w1"
+      },
+      "id": "e8b2c9d0-docs",
+      "label": "docs",
+      "lastActivity": "2026-09-08T04:35:33.978409455Z",
+      "profile": "default",
+      "startedAt": "2026-09-08T04:35:03.978409455Z",
+      "status": "working",
+      "statusSince": "2026-09-08T04:35:33.978409455Z",
+      "termProgram": "vscode",
+      "window": "w1"
+    },
+    {
+      "ancestors": [
+        4106,
+        2600
+      ],
+      "claudePid": 4106,
+      "configDir": "/home/me/.claude-work",
+      "cwd": "/home/me/dev/billing",
+      "display": "billing",
+      "focusAt": "0001-01-01T00:00:00Z",
+      "host": {
+        "kind": "vscode-terminal",
+        "termProgram": "vscode"
+      },
+      "id": "0d6f7a8b-billing",
+      "label": "billing",
+      "lastActivity": "2026-09-08T04:36:33.978409455Z",
+      "profile": "work",
+      "startedAt": "2026-09-08T04:36:03.978409455Z",
+      "status": "done",
+      "statusSince": "2026-09-08T04:36:03.978409455Z",
+      "termProgram": "vscode"
+    },
+    {
+      "ancestors": [
+        4107,
+        2700
+      ],
+      "claudePid": 4107,
+      "cwd": "/home/me/dev/search",
+      "display": "search",
+      "focusAt": "0001-01-01T00:00:00Z",
+      "host": {
+        "kind": "vscode-terminal",
+        "termProgram": "vscode"
+      },
+      "id": "3c5e9f1d-search",
+      "label": "search",
+      "lastActivity": "2026-09-08T04:37:33.978409455Z",
+      "profile": "default",
+      "startedAt": "2026-09-08T04:37:03.978409455Z",
+      "status": "done",
+      "statusSince": "2026-09-08T04:37:03.978409455Z",
+      "termProgram": "vscode"
+    }
+  ],
+  "size": 6,
+  "slots": [
+    {
+      "detail": "Claude needs your permission to use Bash",
+      "elapsedS": 570,
+      "focusAt": "0001-01-01T00:00:00Z",
+      "host": "vscode-terminal",
+      "index": 0,
+      "label": "acme-api",
+      "profile": "work",
+      "sessionId": "5b1c2e7a-acme",
+      "status": "needs_input"
+    },
+    {
+      "detail": "Edit",
+      "elapsedS": 510,
+      "focusAt": "0001-01-01T00:00:00Z",
+      "host": "vscode-terminal",
+      "index": 1,
+      "label": "web",
+      "pinned": true,
+      "profile": "default",
+      "sessionId": "9f30d1aa-web",
+      "status": "working"
+    },
+    {
+      "elapsedS": 480,
+      "focusAt": "0001-01-01T00:00:00Z",
+      "host": "iterm",
+      "index": 2,
+      "label": "mobile",
+      "profile": "default",
+      "sessionId": "c77e0b19-mobile",
+      "status": "done"
+    },
+    {
+      "elapsedS": 420,
+      "focusAt": "0001-01-01T00:00:00Z",
+      "host": "vscode-panel",
+      "index": 3,
+      "label": "infra-terraform",
+      "profile": "default",
+      "sessionId": "a1d4e6f2-infra",
+      "status": "done"
+    },
+    {
+      "elapsedS": 330,
+      "focusAt": "0001-01-01T00:00:00Z",
+      "host": "vscode-terminal",
+      "index": 4,
+      "label": "docs",
+      "profile": "default",
+      "sessionId": "e8b2c9d0-docs",
+      "status": "working"
+    },
+    {
+      "focusAt": "0001-01-01T00:00:00Z",
+      "index": 5,
+      "overflow": 2,
+      "pager": true
+    }
+  ],
+  "updatedAt": "2026-09-08T04:41:03.978465756Z",
+  "windows": [
+    {
+      "app": "Visual Studio Code",
+      "extHostPid": 3000,
+      "folders": [
+        "/home/me/dev/acme-api"
+      ],
+      "id": "w1",
+      "terminals": [
+        {
+          "name": "zsh",
+          "shellPid": 4001
+        },
+        {
+          "name": "zsh 2",
+          "shellPid": 4002
+        },
+        {
+          "name": "docs",
+          "shellPid": 4003
+        }
+      ],
+      "updatedAt": "2026-09-08T04:31:03.978409455Z"
+    }
+  ],
+  "working": 2
+}
