@@ -104,6 +104,7 @@ Slot invariants you can rely on:
 | `working` | model running or a tool executing | amber `#F5A623` | WORKING |
 | `needs_input` | permission prompt, a question, an API failure | red `#E5484D`, **pulsing** | NEEDS YOU |
 | `done` | turn finished, waiting for a prompt | green `#30A46C` | DONE |
+| `limited` | the account hit its usage limit; `detail` says when it resets | blue `#5B8DEF` | LIMIT |
 | `stale` | alive, no events for 30 min | gray `#6E6E6E` | IDLE |
 | `gone` | process exited, key is pinned | gray at 40 % opacity, whole key dimmed | CLOSED |
 | `unknown` | found by rescan, no hook has reported yet | gray | (none, show `?`) |

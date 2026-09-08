@@ -4,7 +4,7 @@
  * `daemonRunning` on top. Refresh fixtures/sessions.json when this changes.
  */
 
-export type Status = "working" | "needs_input" | "done" | "stale" | "gone" | "unknown";
+export type Status = "working" | "needs_input" | "done" | "stale" | "gone" | "unknown" | "limited";
 
 export type HostKind = "vscode-terminal" | "vscode-panel" | "iterm" | "terminal" | "unknown";
 

@@ -4,7 +4,7 @@ import { hiddenNeeds, indexSessions, liveElapsed, type SessionIndex } from "../b
 import type { Layout } from "../board/layout";
 import type { BoardWatcher } from "../board/watcher";
 import type { Corgi } from "../corgi/cli";
-import type { Board, Slot } from "../corgi/types";
+import type { Board, Slot, Status } from "../corgi/types";
 import { type Frame, KeyCache, type KeyInput, offKey } from "../render/key";
 
 export const slotUUID = "com.andriiklymiuk.agent-deck.slot";
@@ -238,9 +238,15 @@ export function commandFor(slot: Slot, kind: "short" | "long"): string[] | undef
 	if (kind === "short") {
 		return ["agent", "focus", slot.sessionId];
 	}
+	if (!slot.pinned && slot.status && finished.has(slot.status)) {
+		// Nothing to protect on a finished key: a hold gives it back.
+		return ["agent", "dismiss", slot.sessionId];
+	}
 	const args = ["agent", "pin", String(slot.index + 1)];
 	if (slot.pinned) {
 		args.push("--off");
 	}
 	return args;
 }
+
+const finished = new Set<Status>(["done", "stale", "gone", "limited"]);

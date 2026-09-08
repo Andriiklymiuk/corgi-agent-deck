@@ -57,11 +57,11 @@ Keys paint within a second. If they stay blank, read `com.andriiklymiuk.agent-de
 
 | key shows | short press | hold (600 ms) |
 |---|---|---|
-| a session | focus its window and tab | pin / unpin |
+| a session | focus its window and tab | working or waiting: pin / unpin · finished (DONE, LIMIT, IDLE, CLOSED): dismiss until its next event · pinned: unpin |
 | `+N` | next page | previous page |
-| empty | new Claude session in the editor window in front | rescan for untracked sessions |
+| empty | new Claude session in the editor window in front, under that folder's account (`corgi agent claude`) | rescan for untracked sessions |
 
-Statuses: **WORKING** (amber), **NEEDS YOU** (red, pulsing: a permission prompt, a question, an API failure), **DONE** (green), **IDLE** (30 min quiet), **CLOSED** (a pinned key whose session exited). A profile chip (`WK`) marks sessions under another Claude account. A key flashes ⚠ once when a press could not land; `corgi agent doctor` says why.
+Statuses: **WORKING** (amber), **NEEDS YOU** (red, pulsing: a permission prompt, a question, an API failure), **DONE** (green), **LIMIT** (blue: the account hit its usage limit; the key says when it resets), **IDLE** (30 min quiet), **CLOSED** (a pinned key whose session exited). A profile chip (`WK`) marks sessions under another Claude account. A key flashes ⚠ once when a press could not land; `corgi agent doctor` says why.
 
 When a session needs you but has no key of its own, the `+N` key turns red and says how many. Elapsed times keep counting between corgi's updates.
 

@@ -17,6 +17,7 @@ export const colors = {
 	stale: "#6E6E6E",
 	gone: "#6E6E6E",
 	unknown: "#6E6E6E",
+	limited: "#5B8DEF",
 } as const;
 
 export const words: Record<Status, string> = {
@@ -26,6 +27,7 @@ export const words: Record<Status, string> = {
 	stale: "IDLE",
 	gone: "CLOSED",
 	unknown: "",
+	limited: "LIMIT",
 };
 
 export type Frame = 0 | 1;
