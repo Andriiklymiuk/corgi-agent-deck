@@ -30,12 +30,17 @@ describe("chord", () => {
 });
 
 describe("pickSession", () => {
-	it("prefers the session last pressed, else the only one needing a person", () => {
+	it("prefers the window in front, then the last press, then the only one needing a person, then the latest", () => {
 		const web = fixture.sessions[1].id;
-		expect(pickSession(fixture, web)).toBe(web);
-		expect(pickSession(fixture, "gone-id")).toBe(fixture.sessions[0].id); // exactly one needs_input in the fixture
-		const two = { ...fixture, sessions: fixture.sessions.map((s, i) => (i === 1 ? { ...s, status: "needs_input" as const } : s)) };
-		expect(pickSession(two, undefined)).toBeUndefined();
+		expect(pickSession(fixture, web)).toBe(fixture.frontSession); // the fixture says who is in front
+		const bare = { ...fixture, frontSession: undefined };
+		expect(pickSession({ ...fixture, frontSession: "gone-id" }, web)).toBe(web);
+		expect(pickSession(bare, web)).toBe(web);
+		expect(pickSession(bare, "gone-id")).toBe(fixture.sessions[0].id); // exactly one needs_input in the fixture
+		const two = { ...bare, sessions: bare.sessions.map((s, i) => (i === 1 ? { ...s, status: "needs_input" as const } : s)) };
+		const latest = two.sessions.filter((s) => s.status !== "gone").sort((a, b) => Date.parse(b.lastActivity) - Date.parse(a.lastActivity))[0].id;
+		expect(pickSession(two, undefined)).toBe(latest);
+		expect(pickSession({ ...bare, sessions: [] }, undefined)).toBeUndefined();
 		expect(pickSession(undefined, web)).toBeUndefined();
 	});
 });

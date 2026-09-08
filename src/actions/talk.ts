@@ -3,7 +3,7 @@ import { execFile } from "node:child_process";
 
 import type { BoardWatcher } from "../board/watcher";
 import type { Corgi } from "../corgi/cli";
-import type { Board } from "../corgi/types";
+import type { Board, Session } from "../corgi/types";
 import { renderTalkKey, type TalkState } from "../render/key";
 import { defaultChord, keystrokeScript } from "../talk/chord";
 
@@ -25,10 +25,10 @@ export interface TalkDeps {
 }
 
 /**
- * Dictate into a session. Press: focus the session (the one last pressed on
- * the deck, else the one that needs you when exactly one does), wait for
- * the board to confirm the focus landed, then tap Claude Code's dictation
- * chord. Press again: the same chord, which in tap mode sends the prompt.
+ * Dictate into a session. Press: focus the session (the one in the window
+ * in front, else the one last pressed on the deck, else the one that needs
+ * you when exactly one does), wait for the board to confirm the focus
+ * landed, then tap Claude Code's dictation chord. Press again: the same chord, which in tap mode sends the prompt.
  *
  * Claude Code does the recording and transcription; corgi does the
  * focusing; this key only presses one chord in the right window. It has no
@@ -73,7 +73,7 @@ export class TalkAction extends SingletonAction {
 		}
 		const sessionId = pickSession(this.deps.watcher.current(), this.deps.lastFocused());
 		if (!sessionId) {
-			this.deps.log.info("talk: no session to dictate into — press a session key first");
+			this.deps.log.info("talk: no session to dictate into — no Claude Code session is running");
 			await ev.action.showAlert().catch(() => undefined);
 			return;
 		}
@@ -185,16 +185,33 @@ export class TalkAction extends SingletonAction {
 	}
 }
 
-/** The session to dictate into: the last one pressed, else the only one that needs you. */
+/**
+ * The session to dictate into: the one in the window in front (corgi's
+ * `frontSession`), else the last one pressed on the deck, else the only one
+ * that needs you, else the one that moved last.
+ */
 export function pickSession(board: Board | undefined, lastFocused: string | undefined): string | undefined {
 	if (!board) {
 		return undefined;
 	}
-	if (lastFocused && board.sessions.some((s) => s.id === lastFocused && s.status !== "gone")) {
+	const live = board.sessions.filter((s) => s.status !== "gone");
+	if (board.frontSession && live.some((s) => s.id === board.frontSession)) {
+		return board.frontSession;
+	}
+	if (lastFocused && live.some((s) => s.id === lastFocused)) {
 		return lastFocused;
 	}
-	const needing = board.sessions.filter((s) => s.status === "needs_input");
-	return needing.length === 1 ? needing[0].id : undefined;
+	const needing = live.filter((s) => s.status === "needs_input");
+	if (needing.length === 1) {
+		return needing[0].id;
+	}
+	let latest: Session | undefined;
+	for (const s of live) {
+		if (!latest || Date.parse(s.lastActivity) > Date.parse(latest.lastActivity)) {
+			latest = s;
+		}
+	}
+	return latest?.id;
 }
 
 /** Runs an AppleScript through osascript. Needs Accessibility for the Stream Deck app. */

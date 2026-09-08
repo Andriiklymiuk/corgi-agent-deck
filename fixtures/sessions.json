@@ -1,5 +1,7 @@
 {
   "daemonRunning": true,
+  "frontSession": "5b1c2e7a-acme",
+  "frontWindow": "w1",
   "needsInput": 1,
   "noticeAt": "0001-01-01T00:00:00Z",
   "overflow": 2,
@@ -258,8 +260,10 @@
   "updatedAt": "2026-09-08T04:41:03.978465756Z",
   "windows": [
     {
+      "activeShellPid": 4001,
       "app": "Visual Studio Code",
       "extHostPid": 3000,
+      "focusedAt": "2026-09-08T04:40:00.000000000Z",
       "folders": [
         "/home/me/dev/acme-api"
       ],

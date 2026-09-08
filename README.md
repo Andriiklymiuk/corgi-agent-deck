@@ -34,7 +34,7 @@ When the corgi daemon is not running every key reads `corgi OFF`; the plugin nev
 
 ## Talk key
 
-Drag a **Talk** key onto the deck to dictate into the session you last pressed: press to talk, press again to send. Claude Code does the recording; the key only focuses the session and presses its dictation chord. One-time setup in Claude Code:
+Drag a **Talk** key onto the deck to dictate into the session in front of you (the one in the editor window you are looking at, or the one you last pressed): press to talk, press again to send. Claude Code does the recording; the key only focuses the session and presses its dictation chord. One-time setup in Claude Code:
 
 ```
 /voice tap
