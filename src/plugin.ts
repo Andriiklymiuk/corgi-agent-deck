@@ -18,6 +18,8 @@ interface GlobalSettings {
 	corgiPath?: string;
 	talkChord?: string;
 	talkPanelChord?: string;
+	talkPanelSend?: string;
+	talkPanelSendDelayMs?: number;
 	[key: string]: string | undefined;
 }
 
@@ -30,7 +32,8 @@ const watcher = new BoardWatcher(corgi);
 const slot = new SlotAction({ layout, watcher, corgi, log });
 let chord = defaultChord;
 let panelChord = defaultPanelChord;
-const talk = new TalkAction({ watcher, corgi, log, sendKeystroke, lastFocused: () => slot.lastFocused(), chord: () => chord, panelChord: () => panelChord });
+let panelSend = { key: "enter", delayMs: 1500 };
+const talk = new TalkAction({ watcher, corgi, log, sendKeystroke, lastFocused: () => slot.lastFocused(), chord: () => chord, panelChord: () => panelChord, panelSend: () => panelSend });
 
 streamDeck.actions.registerAction(slot);
 streamDeck.actions.registerAction(talk);
@@ -110,6 +113,7 @@ function applySettings(settings: GlobalSettings): void {
 	corgi.setOverride(settings.corgiPath);
 	chord = settings.talkChord?.trim() || defaultChord;
 	panelChord = settings.talkPanelChord?.trim() || defaultPanelChord;
+	panelSend = { key: settings.talkPanelSend?.trim() ?? "enter", delayMs: Number(settings.talkPanelSendDelayMs) > 0 ? Number(settings.talkPanelSendDelayMs) : 1500 };
 }
 
 streamDeck.settings.onDidReceiveGlobalSettings<GlobalSettings>((ev) => {

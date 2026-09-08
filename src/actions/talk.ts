@@ -22,6 +22,8 @@ export interface TalkDeps {
 	/** The keybindings.json chord for a terminal session, and the panel's own shortcut. */
 	chord(): string;
 	panelChord(): string;
+	/** The panel stops recording on the second press but does not send; this key, after this pause, does. */
+	panelSend(): { key: string; delayMs: number };
 	/** Presses a chord ("ctrl+y") in the front window. */
 	sendKeystroke(chord: string): Promise<void>;
 	log: { info(msg: string): void; debug(msg: string): void; warn(msg: string): void };
@@ -70,9 +72,16 @@ export class TalkAction extends SingletonAction {
 			return;
 		}
 		if (this.recording) {
-			// Second press: the same chord sends the prompt in tap mode.
-			await this.tap(ev.action, this.recording.sessionId);
+			// Second press: the same chord sends the prompt in tap mode. The
+			// panel only stops recording on it, so a send key follows once
+			// the transcript has landed.
+			const sessionId = this.recording.sessionId;
+			const sent = await this.tap(ev.action, sessionId);
 			this.stopRecording();
+			const send = this.deps.panelSend();
+			if (sent && this.deps.watcher.current()?.sessions.find((s) => s.id === sessionId)?.host.kind === "vscode-panel" && send.key) {
+				setTimeout(() => void this.tap(ev.action, sessionId, send.key), send.delayMs);
+			}
 			return;
 		}
 		const sessionId = pickSession(this.deps.watcher.current(), this.deps.lastFocused());
@@ -117,8 +126,8 @@ export class TalkAction extends SingletonAction {
 		});
 	}
 
-	private async tap(key: KeyAction, sessionId: string): Promise<boolean> {
-		const chord = chordFor(this.deps.watcher.current(), sessionId, this.deps.chord(), this.deps.panelChord());
+	private async tap(key: KeyAction, sessionId: string, override?: string): Promise<boolean> {
+		const chord = override ?? chordFor(this.deps.watcher.current(), sessionId, this.deps.chord(), this.deps.panelChord());
 		if (!keystrokeCommand(chord)) {
 			this.deps.log.warn(`talk: cannot send chord "${chord}" on ${process.platform}`);
 			await key.showAlert().catch(() => undefined);

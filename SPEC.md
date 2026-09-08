@@ -304,7 +304,7 @@ A second action, `com.andriiklymiuk.agent-deck.talk`: press to dictate into the 
 - **Claude Code side** (user setup, documented in README): `/voice tap` once (persists), and in `~/.claude/keybindings.json` bind `voice:pushToTalk` to a chord no terminal claims — `ctrl+y` by default. Tap mode is required: a synthesized keystroke has no key-repeat, so hold mode cannot be triggered from a deck. Needs a Claude.ai login and microphone permission for the terminal app.
 - **Press**: `corgi agent focus <sessionId>`, wait until the next board shows `focusAt` newer than the press with no `focusError` (cap 1.5 s), then `osascript -e 'tell application "System Events" to keystroke "y" using control down'`. Sending keystrokes needs Accessibility for the Stream Deck app (its built-in Hotkey action already uses it).
 - **Feedback**: the key turns red with `REC` after the first press and back to idle when that session's status becomes `working` (transcript submitted) or after two minutes (Claude Code's own recording cap). corgi has no recording event; this is optimistic by design.
-- **Panel sessions**: the Claude Code panel has its own dictation shortcut (`cmd+d` in the webview), so a `vscode-panel` session gets that chord (`talkPanelChord`, default `cmd+d`) instead of the keybindings.json one.
+- **Panel sessions**: the Claude Code panel has its own dictation shortcut (`cmd+d` in the webview), so a `vscode-panel` session gets that chord (`talkPanelChord`, default `cmd+d`) instead of the keybindings.json one; the panel's second press only stops recording, so `talkPanelSend` (default `enter`) follows after `talkPanelSendDelayMs` (default 1500).
 
 ---
 

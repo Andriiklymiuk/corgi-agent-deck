@@ -85,7 +85,7 @@ Do both in **every** Claude config dir you run sessions from (`~/.claude-work/ke
 
 The plugin is macOS-only today (focus needs macOS); the keystroke helper already knows xdotool and SendKeys for later. Sending the chord needs Accessibility permission for the Stream Deck app. It is not in the list by default: System Settings → Privacy & Security → Accessibility → **+** → `/Applications/Elgato Stream Deck.app`, or press Talk once and accept the prompt macOS shows.
 
-Sessions in the Claude Code **panel** need none of that: the panel has its own dictation shortcut (`cmd+d`), and Talk sends that one instead. Change it in the key's settings if Claude Code's changes.
+Sessions in the Claude Code **panel** need none of that: the panel has its own dictation shortcut (`cmd+d`), and Talk sends that one instead. The panel only stops recording on the second press, so Talk then waits 1.5 s for the transcript and presses Enter (both in the key's settings; set the send key blank to review before sending, or to `ctrl+enter` if you turned on `claudeCode.useCtrlEnterToSend`).
 
 Which session Talk goes to: the one in the editor window in front (its Claude panel when that is the active tab, else its active terminal tab, else its panel), else the key you last pressed, else the only one that needs you, else the one that moved last. The key shows REC optimistically and clears when the session starts working or after Claude Code's two-minute cap.
 
