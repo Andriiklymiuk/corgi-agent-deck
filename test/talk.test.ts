@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { chordFor, pickSession } from "../src/actions/talk";
 import type { BoardReport } from "../src/corgi/types";
 import { renderTalkKey } from "../src/render/key";
-import { defaultChord, keystrokeScript, parseChord } from "../src/talk/chord";
+import { defaultChord, keystrokeCommand, keystrokeScript, parseChord } from "../src/talk/chord";
 
 const fixture = JSON.parse(readFileSync(new URL("../fixtures/sessions.json", import.meta.url), "utf8")) as BoardReport;
 
@@ -27,6 +27,20 @@ describe("chord", () => {
 		expect(keystrokeScript("ctrl+shift+v")).toBe('tell application "System Events" to keystroke "v" using {control down, shift down}');
 		expect(keystrokeScript("space")).toBe('tell application "System Events" to key code 49');
 		expect(keystrokeScript("nope+nope")).toBeUndefined();
+	});
+});
+
+describe("keystrokeCommand", () => {
+	it("picks the platform's tool", () => {
+		expect(keystrokeCommand("ctrl+y", "darwin")).toEqual({ file: "osascript", args: ["-e", 'tell application "System Events" to keystroke "y" using control down'] });
+		expect(keystrokeCommand("ctrl+y", "linux")).toEqual({ file: "xdotool", args: ["key", "ctrl+y"] });
+		expect(keystrokeCommand("cmd+d", "linux")).toEqual({ file: "xdotool", args: ["key", "super+d"] });
+		expect(keystrokeCommand("alt+f5", "linux")).toEqual({ file: "xdotool", args: ["key", "alt+F5"] });
+		const win = keystrokeCommand("ctrl+shift+y", "win32");
+		expect(win?.file).toBe("powershell");
+		expect(win?.args[2]).toContain("SendWait('^+y')");
+		expect(keystrokeCommand("cmd+d", "win32")).toBeUndefined();
+		expect(keystrokeCommand("ctrl+y", "sunos" as NodeJS.Platform)).toBeUndefined();
 	});
 });
 

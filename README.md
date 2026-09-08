@@ -83,7 +83,7 @@ and in `~/.claude/keybindings.json` bind the chord (default `ctrl+y`; change it 
 
 Do both in **every** Claude config dir you run sessions from (`~/.claude-work/keybindings.json` and its `settings.json` too). Tap mode is required: a synthesized keystroke has no key-repeat, so hold mode can't be triggered from a deck. Restart running Claude sessions; keybindings load at start. Pick a Ctrl chord: on a Mac, Option+letter types a symbol (`alt+v` is `√`) unless the terminal treats Option as Meta.
 
-Sending the chord needs Accessibility permission for the Stream Deck app. It is not in the list by default: System Settings → Privacy & Security → Accessibility → **+** → `/Applications/Elgato Stream Deck.app`, or press Talk once and accept the prompt macOS shows.
+The plugin is macOS-only today (focus needs macOS); the keystroke helper already knows xdotool and SendKeys for later. Sending the chord needs Accessibility permission for the Stream Deck app. It is not in the list by default: System Settings → Privacy & Security → Accessibility → **+** → `/Applications/Elgato Stream Deck.app`, or press Talk once and accept the prompt macOS shows.
 
 Sessions in the Claude Code **panel** need none of that: the panel has its own dictation shortcut (`cmd+d`), and Talk sends that one instead. Change it in the key's settings if Claude Code's changes.
 
@@ -109,6 +109,8 @@ make validate          # streamdeck validate
 make pack              # the .streamDeckPlugin for a release
 make dev && make link  # once per machine, then reopen the Stream Deck app
 ```
+
+Releases: bump `package.json` and push `main`; CI tags it, packs the plugin and publishes the `.streamDeckPlugin` on GitHub Releases. Elgato Marketplace submission is manual: see [docs/MARKETPLACE.md](docs/MARKETPLACE.md).
 
 A code change needs only `make restart`. A `manifest.json` change or a fresh `link` needs the Stream Deck app quit and reopened. Plugin logs: `com.andriiklymiuk.agent-deck.sdPlugin/logs/`; the app's own: `~/Library/Logs/ElgatoStreamDeck/StreamDeck.log`.
 

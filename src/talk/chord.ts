@@ -87,3 +87,54 @@ export function keystrokeScript(chord: string): string | undefined {
 export const defaultChord = "ctrl+y";
 /** The Claude Code VS Code panel has its own dictation shortcut. */
 export const defaultPanelChord = "cmd+d";
+
+/** What runs to press a chord on each platform, for execFile. */
+export interface KeystrokeCommand {
+	file: string;
+	args: string[];
+}
+
+const xdotoolModifiers: Record<string, string> = { ctrl: "ctrl", control: "ctrl", alt: "alt", option: "alt", opt: "alt", shift: "shift", meta: "super", cmd: "super", command: "super" };
+const sendKeysModifiers: Record<string, string> = { ctrl: "^", control: "^", alt: "%", option: "%", opt: "%", shift: "+" };
+
+/**
+ * The command that presses a chord: osascript on macOS, xdotool on Linux,
+ * SendKeys through PowerShell on Windows. Undefined when the platform cannot
+ * send it (a cmd chord on Windows, a key none of them names).
+ */
+export function keystrokeCommand(chord: string, platform: NodeJS.Platform = process.platform): KeystrokeCommand | undefined {
+	const parts = chord.toLowerCase().split("+").map((p) => p.trim()).filter(Boolean);
+	if (parts.length === 0) {
+		return undefined;
+	}
+	const key = parts.pop() as string;
+	const modifiers = parts;
+	switch (platform) {
+		case "darwin": {
+			const script = keystrokeScript(chord);
+			return script ? { file: "osascript", args: ["-e", script] } : undefined;
+		}
+		case "linux": {
+			const mods = modifiers.map((m) => xdotoolModifiers[m]);
+			if (mods.some((m) => !m)) {
+				return undefined;
+			}
+			const name = key === "escape" || key === "esc" ? "Escape" : key === "enter" || key === "return" ? "Return" : /^f\d{1,2}$/.test(key) ? key.toUpperCase() : key;
+			return { file: "xdotool", args: ["key", [...mods, name].join("+")] };
+		}
+		case "win32": {
+			const mods = modifiers.map((m) => sendKeysModifiers[m]);
+			if (mods.some((m) => !m)) {
+				return undefined;
+			}
+			const name = key.length === 1 ? key : /^f\d{1,2}$/.test(key) ? `{${key.toUpperCase()}}` : key === "space" ? " " : key === "enter" || key === "return" ? "{ENTER}" : key === "escape" || key === "esc" ? "{ESC}" : key === "tab" ? "{TAB}" : undefined;
+			if (name === undefined) {
+				return undefined;
+			}
+			const keys = mods.join("") + name;
+			return { file: "powershell", args: ["-NoProfile", "-Command", `Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait('${keys.replace(/'/g, "''")}')`] };
+		}
+		default:
+			return undefined;
+	}
+}

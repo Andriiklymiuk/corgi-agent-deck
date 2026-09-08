@@ -5,7 +5,7 @@ import type { BoardWatcher } from "../board/watcher";
 import type { Corgi } from "../corgi/cli";
 import type { Board, Session } from "../corgi/types";
 import { renderTalkKey, type TalkState } from "../render/key";
-import { defaultChord, defaultPanelChord, keystrokeScript } from "../talk/chord";
+import { defaultChord, defaultPanelChord, keystrokeCommand } from "../talk/chord";
 
 export const talkUUID = "com.andriiklymiuk.agent-deck.talk";
 
@@ -22,7 +22,8 @@ export interface TalkDeps {
 	/** The keybindings.json chord for a terminal session, and the panel's own shortcut. */
 	chord(): string;
 	panelChord(): string;
-	sendKeystroke(script: string): Promise<void>;
+	/** Presses a chord ("ctrl+y") in the front window. */
+	sendKeystroke(chord: string): Promise<void>;
 	log: { info(msg: string): void; debug(msg: string): void; warn(msg: string): void };
 }
 
@@ -118,14 +119,13 @@ export class TalkAction extends SingletonAction {
 
 	private async tap(key: KeyAction, sessionId: string): Promise<boolean> {
 		const chord = chordFor(this.deps.watcher.current(), sessionId, this.deps.chord(), this.deps.panelChord());
-		const script = keystrokeScript(chord);
-		if (!script) {
-			this.deps.log.warn(`talk: cannot send chord "${chord}"`);
+		if (!keystrokeCommand(chord)) {
+			this.deps.log.warn(`talk: cannot send chord "${chord}" on ${process.platform}`);
 			await key.showAlert().catch(() => undefined);
 			return false;
 		}
 		try {
-			await this.deps.sendKeystroke(script);
+			await this.deps.sendKeystroke(chord);
 			this.deps.log.debug(`talk: sent ${chord} to ${sessionId}`);
 			return true;
 		} catch (error) {
@@ -226,10 +226,15 @@ export function chordFor(board: Board | undefined, sessionId: string, chord: str
 	return session?.host.kind === "vscode-panel" ? panelChord : chord;
 }
 
-/** Runs an AppleScript through osascript. Needs Accessibility for the Stream Deck app. */
-export function sendKeystroke(script: string): Promise<void> {
+/** Presses a chord with the platform's tool: osascript on macOS (needs Accessibility for the Stream Deck app), xdotool, or SendKeys. */
+export function sendKeystroke(chord: string): Promise<void> {
 	return new Promise((resolve, reject) => {
-		execFile("osascript", ["-e", script], { timeout: 3000 }, (error, _stdout, stderr) => {
+		const command = keystrokeCommand(chord);
+		if (!command) {
+			reject(new Error(`cannot send "${chord}" on ${process.platform}`));
+			return;
+		}
+		execFile(command.file, command.args, { timeout: 3000 }, (error, _stdout, stderr) => {
 			if (error) {
 				reject(new Error(String(stderr || error.message).trim()));
 			} else {
