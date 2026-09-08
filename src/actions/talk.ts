@@ -40,7 +40,7 @@ export class TalkAction extends SingletonAction {
 	private readonly instances = new Map<string, KeyAction>();
 	private state: TalkState = "idle";
 	private recording: { sessionId: string; since: number; clear: NodeJS.Timeout } | undefined;
-	private drawn = "";
+	private readonly drawn = new Map<string, string>();
 
 	constructor(private readonly deps: TalkDeps) {
 		super();
@@ -55,6 +55,7 @@ export class TalkAction extends SingletonAction {
 
 	override onWillDisappear(ev: WillDisappearEvent): void {
 		this.instances.delete(ev.action.id);
+		this.drawn.delete(ev.action.id);
 	}
 
 	override async onKeyDown(ev: KeyDownEvent): Promise<void> {
@@ -174,12 +175,15 @@ export class TalkAction extends SingletonAction {
 	redraw(): void {
 		const state: TalkState = this.deps.watcher.daemonRunning() ? this.state : "off";
 		const image = renderTalkKey(state);
-		if (this.drawn === image) {
-			return;
-		}
-		this.drawn = image;
-		for (const key of this.instances.values()) {
-			void key.setImage(image).catch(() => undefined);
+		for (const [id, key] of this.instances) {
+			if (this.drawn.get(id) === image) {
+				continue;
+			}
+			this.drawn.set(id, image);
+			key.setImage(image).catch((error: unknown) => {
+				this.drawn.delete(id);
+				this.deps.log.warn(`talk: setImage failed: ${String((error as Error)?.message ?? error)}`);
+			});
 		}
 	}
 }
