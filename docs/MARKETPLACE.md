@@ -16,35 +16,4 @@ release workflow produces the `.streamDeckPlugin`; a person uploads it.
    `Category` + `CategoryIcon` (28×28 / 56×56), `Icon` for the marketplace
    listing (256×256 / 512×512), the action icons (20×20 / 40×40) and key
    images (72×72 / 144×144), all under `com.andriiklymiuk.corgi-agent-deck.sdPlugin/imgs/`.
-4. **Debug off for a store build.** `Nodejs.Debug` in `manifest.json` opens
-   an inspector port. Set it to `"disabled"` in the commit you submit; a
-   store build should not listen on a port.
-
-## Each release
-
-1. Bump `package.json` (`npm version patch --no-git-tag-version`), commit,
-   push `main`. CI tags `v<version>`, packs with that version (the
-   manifest's `Version` becomes `<version>.0`) and attaches the
-   `.streamDeckPlugin` to the GitHub Release.
-2. Download that file from the release.
-3. At https://maker.elgato.com → *Products* → *Corgi Agent Deck* → **New version**:
-   upload it, paste the release notes, submit for review. Reviews take a
-   few working days; a rejection comes with the reason by email.
-
-## Listing copy (draft)
-
-- **Name:** Corgi Agent Deck
-- **Tagline:** Every Claude Code session on its own key.
-- **Description:** the first two paragraphs of README.md.
-- **Actions:** Session (the board key), Talk (dictation; answers a
-  permission prompt when one is waiting), Prompt (a canned line), Budget
-  (one account's five-hour ring and seven-day bar).
-- **Keywords:** claude, claude code, ai, agent, terminal, vs code, corgi
-- **Media** (all from `npm run showcase`, in `docs/media/store/`):
-  - Icon (288×288): `icon-288.png`
-  - Thumbnail (1920×960): `mk2.png`
-  - Gallery (1920×960, three or more): `mini.png`, `talk.png` (Talk
-    answering a permission, Prompt and Budget keys), `states.png`, and
-    `mk2.png` again; `pulse.mp4` (1920×1080) as the video item.
-- **Requirements to state:** macOS 12+, Stream Deck app 7.1+, corgi
-  (`brew install andriiklymiuk/homebrew-tools/corgi`), Claude Code.
+4. **No `Nodejs.Debug` in the manifest.** Stream Deck passes its value to node as a flag: `"enabled"` and `--inspect=…` work, anything else ("disabled") makes node look for a script by that name and the plugin never starts. Leave the key out; `streamdeck pack` strips it anyway.

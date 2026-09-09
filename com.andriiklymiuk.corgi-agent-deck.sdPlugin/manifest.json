@@ -88,8 +88,7 @@
 		}
 	],
 	"Nodejs": {
-		"Version": "24",
-		"Debug": "disabled"
+		"Version": "24"
 	},
 	"UUID": "com.andriiklymiuk.corgi-agent-deck"
 }
