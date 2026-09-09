@@ -19,7 +19,7 @@ const keys: Record<string, KeyInput> = {
 	noted: { index: 7, sessionId: "h", label: "docs", profile: "default", status: "done", note: "waiting on PR", elapsedS: 400, host: "vscode-terminal", context: 35 },
 	pager: { index: 6, pager: true, overflow: 2, hiddenNeeds: 1 },
 	pagerQuiet: { index: 6, pager: true, overflow: 2, hiddenNeeds: 0 },
-	empty: { index: 7, empty: true },
+	empty: { index: 7, empty: true, label: "corgi" },
 	off: { kind: "off" },
 };
 

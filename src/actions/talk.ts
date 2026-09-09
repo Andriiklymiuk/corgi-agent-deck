@@ -8,6 +8,7 @@ import type { Board, Session } from "../corgi/types";
 import { type Approve, renderTalkKey, type TalkState } from "../render/key";
 import { defaultChord, defaultPanelChord, type KeystrokeCommand, keystrokeCommand, typeTextCommands } from "../talk/chord";
 import { HoldDetector } from "./hold";
+import { nextWindowSession } from "../board/windows";
 
 export const talkUUID = "com.andriiklymiuk.corgi-agent-deck.talk";
 
@@ -58,10 +59,20 @@ export class TalkAction extends SingletonAction {
 	private readonly drawn = new Map<string, string>();
 	private readonly hold = new HoldDetector((actionId, kind, at) => {
 		const key = this.instances.get(actionId);
-		const target = this.approveTarget();
-		if (key && target) {
-			void this.answer(key, target.sessionId, kind === "long" ? "deny" : "allow", at);
+		if (!key) {
+			return;
 		}
+		const target = this.approveTarget();
+		if (target) {
+			void this.answer(key, target.sessionId, kind === "long" ? "deny" : "allow", at);
+			return;
+		}
+		if (kind === "long") {
+			// A hold with nothing to answer walks the other windows' sessions.
+			void this.focusNextWindow(key);
+			return;
+		}
+		void this.dictate(key);
 	});
 
 	constructor(private readonly deps: TalkDeps) {
@@ -89,10 +100,6 @@ export class TalkAction extends SingletonAction {
 			await ev.action.showAlert().catch(() => undefined);
 			return;
 		}
-		if (!this.recording && this.approveTarget()) {
-			this.hold.down(ev.action.id); // allow on release, deny on a hold
-			return;
-		}
 		if (this.recording) {
 			// Second press: the same chord sends the prompt in tap mode. The
 			// panel only stops recording on it, so a send key follows once
@@ -106,19 +113,36 @@ export class TalkAction extends SingletonAction {
 			}
 			return;
 		}
+		// Release answers or dictates; a hold denies, or moves to the next window.
+		this.hold.down(ev.action.id);
+	}
+
+	private async dictate(key: KeyAction): Promise<void> {
 		const sessionId = pickSession(this.deps.watcher.current(), this.deps.lastFocused());
 		if (!sessionId) {
 			this.deps.log.info("talk: no session to dictate into — no Claude Code session is running");
-			await ev.action.showAlert().catch(() => undefined);
+			await key.showAlert().catch(() => undefined);
 			return;
 		}
 		const focused = await this.focus(sessionId);
 		if (!focused) {
-			await ev.action.showAlert().catch(() => undefined);
+			await key.showAlert().catch(() => undefined);
 			return;
 		}
-		if (await this.tap(ev.action, sessionId)) {
+		if (await this.tap(key, sessionId)) {
 			this.startRecording(sessionId);
+		}
+	}
+
+	private async focusNextWindow(key: KeyAction): Promise<void> {
+		const session = nextWindowSession(this.deps.watcher.current());
+		if (!session) {
+			this.deps.log.info("talk: no session in another window to move to");
+			await key.showAlert().catch(() => undefined);
+			return;
+		}
+		if (!(await this.focus(session.id))) {
+			await key.showAlert().catch(() => undefined);
 		}
 	}
 

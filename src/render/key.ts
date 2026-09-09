@@ -65,7 +65,7 @@ export function keyCacheKey(input: KeyInput, frame: Frame): string {
 		return `pager|${input.overflow ?? 0}|${input.hiddenNeeds ?? 0}|${input.hiddenNeeds ? frame : 0}`;
 	}
 	if (input.empty || !input.sessionId) {
-		return "empty";
+		return `empty|${input.label ?? ""}`;
 	}
 	const pulse = input.status === "needs_input" ? frame : 0;
 	return [input.label, input.status, input.profile, input.pinned ? 1 : 0, input.detail ?? "", elapsedBucket(input.elapsedS), input.host ?? "", pulse, input.context ?? 0, input.pending ?? "", input.note ?? "", input.stuck ? 1 : 0].join("|");
@@ -77,7 +77,7 @@ export function renderKey(input: KeyInput, frame: Frame): string {
 
 /** The SVG markup itself, for golden tests. */
 export function renderSvg(input: KeyInput, frame: Frame): string {
-	const body = "kind" in input ? offBody() : input.pager ? pagerBody(input.overflow ?? 0, input.hiddenNeeds ?? 0, frame) : input.empty || !input.sessionId ? emptyBody() : sessionBody(input, frame);
+	const body = "kind" in input ? offBody() : input.pager ? pagerBody(input.overflow ?? 0, input.hiddenNeeds ?? 0, frame) : input.empty || !input.sessionId ? emptyBody(input.label) : sessionBody(input, frame);
 	return svg(body);
 }
 
@@ -311,8 +311,13 @@ export function formatResetTime(iso: string, now = new Date()): string {
 	return clock;
 }
 
-function emptyBody(): string {
-	return text(72, 84, "+", `font-size="34" font-weight="300" fill="${colors.dim}" opacity="0.35" text-anchor="middle"`);
+/** A big plus, and under it the workspace a press opens the session in. */
+function emptyBody(label?: string): string {
+	const parts = [text(72, label ? 78 : 92, "+", `font-size="${label ? 60 : 72}" font-weight="300" fill="${colors.dim}" opacity="0.6" text-anchor="middle"`)];
+	if (label) {
+		parts.push(text(72, 122, fitName(label), `font-size="${fonts.detail}" font-weight="600" fill="${colors.dim}" opacity="0.8" text-anchor="middle"`));
+	}
+	return parts.join("");
 }
 
 function offBody(): string {

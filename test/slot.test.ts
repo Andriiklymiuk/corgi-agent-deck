@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { commandFor } from "../src/actions/slot";
+import { emptyBoard } from "../src/corgi/types";
 
 describe("commandFor", () => {
 	it("maps every kind of key and press to its corgi command", () => {
@@ -15,6 +16,18 @@ describe("commandFor", () => {
 		expect(commandFor({ index: 5, pager: true, overflow: 2 }, "short")).toEqual(["agent", "page", "next"]);
 		expect(commandFor({ index: 5, pager: true, overflow: 2 }, "long")).toEqual(["agent", "page", "prev"]);
 		expect(commandFor({ index: 4, empty: true }, "short")).toEqual(["agent", "new"]);
-		expect(commandFor({ index: 4, empty: true }, "long")).toEqual(["agent", "rescan"]);
+		expect(commandFor({ index: 4, empty: true }, "long")).toEqual(["agent", "new"]); // no other window to walk to
+	});
+});
+
+describe("the + key", () => {
+	const board = { ...emptyBoard(), frontWindow: "w-a", windows: [
+		{ id: "w-a", extHostPid: 1, folders: ["/dev/api"], updatedAt: "" },
+		{ id: "w-b", extHostPid: 2, folders: ["/dev/web"], updatedAt: "" },
+	] };
+	it("opens in the front window on a press and walks to the next on a hold", () => {
+		expect(commandFor({ index: 0, empty: true }, "short", board)).toEqual(["agent", "new"]);
+		expect(commandFor({ index: 0, empty: true }, "long", board)).toEqual(["agent", "new", "--window", "w-b"]);
+		expect(commandFor({ index: 0, empty: true }, "long", { ...board, windows: board.windows.slice(0, 1) })).toEqual(["agent", "new"]);
 	});
 });

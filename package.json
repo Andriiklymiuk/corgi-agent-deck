@@ -1,6 +1,6 @@
 {
     "name": "corgi-agent-deck",
-    "version": "0.3.2",
+    "version": "0.4.0",
     "private": true,
     "description": "Stream Deck plugin for corgi's Claude Code session board",
     "scripts": {

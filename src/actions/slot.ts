@@ -7,6 +7,7 @@ import type { Corgi } from "../corgi/cli";
 import type { Board, Slot, Status } from "../corgi/types";
 import { type Frame, KeyCache, type KeyInput, offKey } from "../render/key";
 import { HoldDetector, longPressMs } from "./hold";
+import { frontWindow, nextWindow, windowLabel } from "../board/windows";
 
 export const slotUUID = "com.andriiklymiuk.corgi-agent-deck.slot";
 
@@ -89,7 +90,7 @@ export class SlotAction extends SingletonAction {
 			return;
 		}
 		const slot = this.slotAt(index);
-		const args = commandFor(slot, kind);
+		const args = commandFor(slot, kind, this.deps.watcher.current());
 		if (!args) {
 			return;
 		}
@@ -146,7 +147,8 @@ export class SlotAction extends SingletonAction {
 		if (slot.sessionId) {
 			return { ...slot, elapsedS: liveElapsed(slot, board, now, sessions) };
 		}
-		return slot;
+		// The "+" says where a press opens a session: the window in front.
+		return { ...slot, label: windowLabel(frontWindow(board)) };
 	}
 
 	/** Something on this key needs a pulse frame: a session needing a person, or a pager hiding one. */
@@ -206,12 +208,14 @@ export class SlotAction extends SingletonAction {
 }
 
 /** The corgi command for a press on a slot, or undefined for "nothing". */
-export function commandFor(slot: Slot, kind: "short" | "long"): string[] | undefined {
+export function commandFor(slot: Slot, kind: "short" | "long", board?: Board): string[] | undefined {
 	if (slot.pager) {
 		return ["agent", "page", kind === "short" ? "next" : "prev"];
 	}
 	if (slot.empty || !slot.sessionId) {
-		return kind === "short" ? ["agent", "new"] : ["agent", "rescan"];
+		// A hold walks the open windows: the next one comes forward and gets the session.
+		const next = kind === "long" ? nextWindow(board) : undefined;
+		return next ? ["agent", "new", "--window", next.id] : ["agent", "new"];
 	}
 	if (kind === "short") {
 		return ["agent", "focus", slot.sessionId];
