@@ -1,6 +1,6 @@
 # Corgi Agent Deck
 
-Every Claude Code session on your Mac on its own Stream Deck key. Amber while it works, red and pulsing when it needs you, green when it's done, its context window as a bar along the bottom. Press a key and that session's window and terminal tab come to the front. Hold to pin. An empty key shows the workspace in front and opens a new session there; hold it to walk your other open windows. A permission prompt turns the Talk key red: press to allow, hold to deny. Prompt keys type a canned line; a Budget key shows how much of the account's five hours is gone.
+Every Claude Code session on your Mac on its own Stream Deck key. Amber while it works, red and pulsing when it needs you, green when it's done, its context window as a bar along the bottom. Press a key and that session's window and terminal tab come to the front. Hold to pin. An empty key shows the workspace in front and opens a new session there; hold it to pick another open window, then press. A permission prompt turns the Talk key red: press to allow, hold to deny. Prompt keys type a canned line; a Budget key shows how much of the account's five hours is gone.
 
 Corgi Agent Deck draws the board that [corgi](https://github.com/Andriiklymiuk/corgi) keeps (`corgi agent track`) and turns presses into `corgi agent …` commands. It holds no state of its own.
 
@@ -63,7 +63,7 @@ Keys paint within a second. If they stay blank, read `com.andriiklymiuk.corgi-ag
 |---|---|---|
 | a session | focus its window and tab | working or waiting: pin / unpin · finished (DONE, LIMIT, IDLE, CLOSED): dismiss until its next event · pinned: unpin |
 | `+N` | next page | previous page |
-| `+` with a workspace name | new Claude session in that window — the editor window in front — under its folder's account (`corgi agent claude`) | the next open window comes forward and gets the session; keep holding on later presses to go round |
+| `+` with a workspace name | new Claude session in that window — the editor window in front — under its folder's account (`corgi agent claude`) | move the target to the next open window (the name goes bright, with ▸); hold again to go round; press to open there |
 | Talk, red with ALLOW | allow the permission the session in front is waiting on | deny it |
 | Talk | start dictating; press again to send | focus the session in the next open window |
 | Prompt | type its text into the session in front, then Enter | — |

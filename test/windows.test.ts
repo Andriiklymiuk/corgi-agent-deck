@@ -26,6 +26,7 @@ describe("windows", () => {
 		expect(frontWindow(b)?.id).toBe("w-a");
 		expect(nextWindow(b)?.id).toBe("w-c"); // api → corgi → web → api
 		expect(nextWindow({ ...b, frontWindow: "w-b" })?.id).toBe("w-a");
+		expect(nextWindow(b, "w-c")?.id).toBe("w-b"); // from a picked window, not the front one
 		expect(nextWindow({ ...b, windows: [win("w-a", "/a")] })).toBeUndefined();
 	});
 

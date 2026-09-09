@@ -24,14 +24,14 @@ export function frontWindow(board: Board | undefined): Window | undefined {
 	return [...windows].sort((a, b) => (b.focusedAt ?? "").localeCompare(a.focusedAt ?? ""))[0];
 }
 
-/** The window after the front one, wrapping; undefined with fewer than two. */
-export function nextWindow(board: Board | undefined): Window | undefined {
+/** The window after `fromId` (default: the front one), wrapping; undefined with fewer than two. */
+export function nextWindow(board: Board | undefined, fromId?: string): Window | undefined {
 	const windows = ordered(board);
 	if (windows.length < 2) {
 		return undefined;
 	}
-	const front = frontWindow(board);
-	const at = windows.findIndex((w) => w.id === front?.id);
+	const from = fromId ?? frontWindow(board)?.id;
+	const at = windows.findIndex((w) => w.id === from);
 	return windows[(at + 1) % windows.length];
 }
 

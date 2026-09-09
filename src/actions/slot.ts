@@ -41,6 +41,8 @@ export class SlotAction extends SingletonAction {
 	private frame: Frame = 0;
 	private lastPress: { index: number; at: number } | undefined;
 	private lastFocusedId: string | undefined;
+	/** Where the "+" opens next: a hold moves it to the next open window. */
+	private plusTarget: string | undefined;
 
 	/** The session the last press focused: where the talk key dictates. */
 	lastFocused(): string | undefined {
@@ -90,9 +92,23 @@ export class SlotAction extends SingletonAction {
 			return;
 		}
 		const slot = this.slotAt(index);
-		const args = commandFor(slot, kind, this.deps.watcher.current());
+		const board = this.deps.watcher.current();
+		if ((slot.empty || !slot.sessionId) && !slot.pager && kind === "long") {
+			const next = nextWindow(board, this.plusTarget);
+			if (!next) {
+				await key.showAlert().catch(() => undefined);
+				return;
+			}
+			this.plusTarget = next.id;
+			this.redraw();
+			return;
+		}
+		const args = commandFor(slot, kind, board, this.plusTarget);
 		if (!args) {
 			return;
+		}
+		if (slot.empty || !slot.sessionId) {
+			this.plusTarget = undefined;
 		}
 		this.lastPress = { index, at };
 		this.deps.log.debug(`key ${index + 1} ${kind}: corgi ${args.join(" ")}`);
@@ -147,8 +163,12 @@ export class SlotAction extends SingletonAction {
 		if (slot.sessionId) {
 			return { ...slot, elapsedS: liveElapsed(slot, board, now, sessions) };
 		}
-		// The "+" says where a press opens a session: the window in front.
-		return { ...slot, label: windowLabel(frontWindow(board)) };
+		// The "+" says where a press opens a session: the window a hold picked, else the one in front.
+		const target = board.windows?.find((w) => w.id === this.plusTarget);
+		if (this.plusTarget && !target) {
+			this.plusTarget = undefined;
+		}
+		return { ...slot, label: windowLabel(target ?? frontWindow(board)), pinned: !!target };
 	}
 
 	/** Something on this key needs a pulse frame: a session needing a person, or a pager hiding one. */
@@ -208,14 +228,14 @@ export class SlotAction extends SingletonAction {
 }
 
 /** The corgi command for a press on a slot, or undefined for "nothing". */
-export function commandFor(slot: Slot, kind: "short" | "long", board?: Board): string[] | undefined {
+export function commandFor(slot: Slot, kind: "short" | "long", board?: Board, plusTarget?: string): string[] | undefined {
 	if (slot.pager) {
 		return ["agent", "page", kind === "short" ? "next" : "prev"];
 	}
 	if (slot.empty || !slot.sessionId) {
-		// A hold walks the open windows: the next one comes forward and gets the session.
-		const next = kind === "long" ? nextWindow(board) : undefined;
-		return next ? ["agent", "new", "--window", next.id] : ["agent", "new"];
+		// A hold only moves the target (see press); the press opens there.
+		const target = board?.windows?.find((w) => w.id === plusTarget);
+		return target ? ["agent", "new", "--window", target.id] : ["agent", "new"];
 	}
 	if (kind === "short") {
 		return ["agent", "focus", slot.sessionId];

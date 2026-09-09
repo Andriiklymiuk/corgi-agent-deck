@@ -25,9 +25,9 @@ describe("the + key", () => {
 		{ id: "w-a", extHostPid: 1, folders: ["/dev/api"], updatedAt: "" },
 		{ id: "w-b", extHostPid: 2, folders: ["/dev/web"], updatedAt: "" },
 	] };
-	it("opens in the front window on a press and walks to the next on a hold", () => {
+	it("opens in the front window, or in the window a hold picked", () => {
 		expect(commandFor({ index: 0, empty: true }, "short", board)).toEqual(["agent", "new"]);
-		expect(commandFor({ index: 0, empty: true }, "long", board)).toEqual(["agent", "new", "--window", "w-b"]);
-		expect(commandFor({ index: 0, empty: true }, "long", { ...board, windows: board.windows.slice(0, 1) })).toEqual(["agent", "new"]);
+		expect(commandFor({ index: 0, empty: true }, "short", board, "w-b")).toEqual(["agent", "new", "--window", "w-b"]);
+		expect(commandFor({ index: 0, empty: true }, "short", board, "w-gone")).toEqual(["agent", "new"]);
 	});
 });

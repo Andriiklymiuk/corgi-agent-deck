@@ -145,7 +145,7 @@ describe("cache", () => {
 		expect(keyCacheKey({ ...a, note: "hi" }, 0)).not.toBe(keyCacheKey(a, 0));
 		expect(keyCacheKey({ ...a, pending: "Bash" }, 0)).not.toBe(keyCacheKey(a, 0));
 		expect(keyCacheKey({ ...a, status: "needs_input" }, 0)).not.toBe(keyCacheKey({ ...a, status: "needs_input" }, 1));
-		expect(keyCacheKey({ index: 1, empty: true }, 0)).toBe("empty|");
+		expect(keyCacheKey({ index: 1, empty: true }, 0)).toBe("empty||0");
 		expect(keyCacheKey({ index: 5, pager: true, overflow: 2 }, 0)).toBe("pager|2|0|0");
 		// A pager hiding a session that needs you pulses; one hiding none does not.
 		expect(keyCacheKey({ index: 5, pager: true, overflow: 2, hiddenNeeds: 1 }, 1)).toBe("pager|2|1|1");
