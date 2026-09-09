@@ -21,7 +21,7 @@ describe("renderSvg", () => {
 	});
 
 	it("sets type large enough to read from a desk", () => {
-		expect(fonts).toEqual({ label: 24, word: 14, detail: 13, elapsed: 12 });
+		expect(fonts).toEqual({ label: 24, labelSmall: 20, word: 14, detail: 13, elapsed: 12 });
 		const svg = renderSvg(slot(0), 0);
 		expect(svg).toContain('font-size="24" font-weight="600"'); // label
 		expect(svg).toContain('font-size="14" font-weight="700" letter-spacing="1"'); // status word
@@ -33,13 +33,13 @@ describe("renderSvg", () => {
 		expect(renderSvg(slot(1), 0)).toContain('x="132" y="24"');
 	});
 
-	it("draws the context bar along the bottom, grey then amber then red, nothing when unknown", () => {
+	it("draws the context bar along the bottom, grey until 85 then red, nothing when unknown", () => {
 		expect(contextBar(undefined)).toBe("");
 		expect(contextBar(0)).toBe("");
 		expect(contextBar(42)).toContain('y="140" width="60" height="4" fill="#6E6E6E"');
 		expect(contextBar(60)).toContain('fill="#6E6E6E"/>');
-		expect(contextBar(61)).toContain('width="88" height="4" fill="#F5A623"');
-		expect(contextBar(85)).toContain('fill="#F5A623"');
+		expect(contextBar(61)).toContain('width="88" height="4" fill="#6E6E6E"');
+		expect(contextBar(85)).toContain('fill="#6E6E6E"');
 		expect(contextBar(86)).toContain('fill="#E5484D"');
 		expect(contextBar(140)).toContain('width="144" height="4" fill="#E5484D"'); // clamped
 		expect(contextColor(30)).toBe("#6E6E6E");
@@ -99,8 +99,11 @@ describe("renderSvg", () => {
 	it("wraps long labels on a separator, else hard, and ellipsizes", () => {
 		expect(wrapLabel("acme-api")).toEqual(["acme-api"]);
 		expect(wrapLabel("infra-terraform")).toEqual(["infra-", "terraform"]);
-		expect(wrapLabel("acme-api·zsh 2")).toEqual(["acme-api·", "zsh 2"]);
-		expect(wrapLabel("averyveryverylongprojectname")).toEqual(["averyvery", "verylong…"]);
+		expect(wrapLabel("acme-api·zsh 2")).toEqual(["acme-api", "zsh 2"]);
+		expect(wrapLabel("onboarding")).toEqual(["onboarding"]);
+		expect(wrapLabel("onboarding·✓ onboarding 55%")).toEqual(["onboarding", "✓ onboard…"]);
+		expect(wrapLabel("averyveryverylongprojectname")).toEqual(["avery…name"]);
+		expect(wrapLabel("onboarding-service")).toEqual(["onboarding", "service"]);
 		const svg = renderSvg(slot(3), 0);
 		expect(svg).toContain('y="58"');
 		expect(svg).toContain('y="85"');

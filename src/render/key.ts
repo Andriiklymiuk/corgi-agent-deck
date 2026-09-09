@@ -40,9 +40,11 @@ export type KeyInput = (Slot & { hiddenNeeds?: number }) | typeof offKey;
 
 const size = 144;
 /** Type sizes, in px on the 144 px canvas. */
-export const fonts = { label: 24, word: 14, detail: 13, elapsed: 12 } as const;
+export const fonts = { label: 24, labelSmall: 20, word: 14, detail: 13, elapsed: 12 } as const;
 /** Approximate advance of the label face at 24 px semibold. */
 const labelAdvance = 13;
+/** …and at 20 px. */
+const smallAdvance = 11;
 const labelWidth = size - 24;
 const hardWrapAt = 9;
 /** Characters of 13 px monospace that fit between the margins. */
@@ -104,12 +106,12 @@ function sessionBody(slot: Slot, frame: Frame): string {
 	if (elapsed) {
 		parts.push(text(hasChip ? 98 : 132, 24, elapsed, `${mono} font-size="${fonts.elapsed}" fill="${colors.dim}" text-anchor="end"`));
 	}
-	const labelAttrs = `font-size="${fonts.label}" font-weight="600" fill="${colors.text}"`;
+	const labelAttrs = (s: string): string => `font-size="${labelFont(s)}" font-weight="600" fill="${colors.text}"`;
 	if (lines.length === 1) {
-		parts.push(text(12, 72, lines[0], labelAttrs));
+		parts.push(text(12, 72, lines[0], labelAttrs(lines[0])));
 	} else {
-		parts.push(text(12, 58, lines[0], labelAttrs));
-		parts.push(text(12, 85, lines[1], labelAttrs));
+		parts.push(text(12, 58, lines[0], labelAttrs(lines[0])));
+		parts.push(text(12, 85, lines[1], labelAttrs(lines[1])));
 	}
 	const detail = detailLine(slot);
 	if (detail) {
@@ -138,9 +140,12 @@ export function statusWord(slot: Pick<Slot, "status" | "stuck">): string {
 	return words[status];
 }
 
-/** Grey until 60 %, amber above, red above 85 %. */
+/**
+ * Grey until 85 %, red above. Amber here read as the status colour next to
+ * the status word, so only the near-full warning gets a colour.
+ */
 export function contextColor(percent: number): string {
-	return percent > 85 ? colors.needs_input : percent > 60 ? colors.working : colors.stale;
+	return percent > 85 ? colors.needs_input : colors.stale;
 }
 
 /** A 4 px bar along the bottom, filled to the context window used. Nothing when unknown. */
@@ -364,27 +369,64 @@ export function formatElapsed(elapsedS: number | undefined): string {
 }
 
 /**
- * Two lines at most. Break at -, _, · or /; otherwise hard-wrap; ellipsize
- * the second line. Widths come from the advance table, so this never waits
- * on a font.
+ * Two lines at most. A twin suffix ("acme-api·zsh 2") takes the second line.
+ * Otherwise break at -, _ or / when the head fits; a long single word is
+ * never split, it gets a middle ellipsis ("onboa…tion") and the smaller
+ * face. Widths come from the advance table, so this never waits on a font.
  */
 export function wrapLabel(label: string): string[] {
-	const fits = (s: string): boolean => s.length * labelAdvance <= labelWidth;
-	if (fits(label)) {
+	const dot = label.indexOf("·");
+	if (dot > 0) {
+		return [fitName(label.slice(0, dot)), fitTail(label.slice(dot + 1))];
+	}
+	if (fitsBig(label)) {
 		return [label];
 	}
-	let breakAt = -1;
+	// The last separator whose head fits; the separator stays on line one
+	// when there is room for it.
+	let head = "";
+	let tailStart = -1;
 	for (let i = 0; i < label.length; i++) {
-		if ("-_·/".includes(label[i]) && fits(label.slice(0, i + 1))) {
-			breakAt = i + 1;
+		if (!"-_/".includes(label[i])) {
+			continue;
+		}
+		if (fitsSmall(label.slice(0, i + 1))) {
+			head = label.slice(0, i + 1);
+			tailStart = i + 1;
+		} else if (fitsSmall(label.slice(0, i))) {
+			head = label.slice(0, i);
+			tailStart = i + 1;
 		}
 	}
-	if (breakAt <= 0) {
-		breakAt = hardWrapAt;
+	if (tailStart <= 0) {
+		return [fitName(label)];
 	}
-	const first = label.slice(0, breakAt);
-	const rest = label.slice(breakAt);
-	return [first, fits(rest) ? rest : truncate(rest, Math.floor(labelWidth / labelAdvance))];
+	return [head, fitTail(label.slice(tailStart))];
+}
+
+/** Characters that fit a line at the big face, and at the smaller one. */
+const bigChars = Math.floor(labelWidth / labelAdvance);
+const smallChars = Math.floor(labelWidth / smallAdvance);
+const fitsBig = (s: string): boolean => s.length <= bigChars;
+const fitsSmall = (s: string): boolean => s.length <= smallChars;
+/** The face a line gets: big when it fits, else the smaller one. */
+export function labelFont(s: string): number {
+	return fitsBig(s) ? fonts.label : fonts.labelSmall;
+}
+
+/** A repo name keeps its start and end: "onboarding-service" → "onboa…rvice". */
+function fitName(s: string): string {
+	if (s.length <= smallChars) {
+		return s;
+	}
+	const keep = smallChars - 1;
+	const head = Math.ceil(keep / 2);
+	return s.slice(0, head) + "…" + s.slice(s.length - (keep - head));
+}
+
+/** A title or tab name keeps its start. */
+function fitTail(s: string): string {
+	return truncate(s, smallChars);
 }
 
 function truncate(s: string, max: number): string {
