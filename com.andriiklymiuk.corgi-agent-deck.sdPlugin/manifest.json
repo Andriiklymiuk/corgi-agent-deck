@@ -1,6 +1,6 @@
 {
 	"Name": "Corgi Agent Deck",
-	"Version": "0.3.0.0",
+	"Version": "0.3.1.0",
 	"Author": "Andrii Klymiuk",
 	"Actions": [
 		{
@@ -89,7 +89,7 @@
 	],
 	"Nodejs": {
 		"Version": "24",
-		"Debug": "enabled"
+		"Debug": "disabled"
 	},
 	"UUID": "com.andriiklymiuk.corgi-agent-deck"
 }
