@@ -68,7 +68,7 @@ export function keyCacheKey(input: KeyInput, frame: Frame): string {
 		return `empty|${input.label ?? ""}|${input.pinned ? 1 : 0}`;
 	}
 	const pulse = input.status === "needs_input" ? frame : 0;
-	return [input.label, input.status, input.profile, input.pinned ? 1 : 0, input.detail ?? "", elapsedBucket(input.elapsedS), input.host ?? "", pulse, input.context ?? 0, input.pending ?? "", input.note ?? "", input.stuck ? 1 : 0].join("|");
+	return [input.label, input.status, input.profile, input.pinned ? 1 : 0, input.detail ?? "", elapsedBucket(input.elapsedS), input.host ?? "", pulse, input.context ?? 0, input.pending ?? "", input.note ?? "", input.stuck ? 1 : 0, input.drift ?? "", input.overlap ?? "", input.spend ?? "", input.overCap ? 1 : 0].join("|");
 }
 
 export function renderKey(input: KeyInput, frame: Frame): string {
@@ -115,7 +115,10 @@ function sessionBody(slot: Slot, frame: Frame): string {
 	}
 	const detail = detailLine(slot);
 	if (detail) {
-		parts.push(text(12, 106, detail, `${mono} font-size="${fonts.detail}" fill="${colors.dim}"`));
+		// A warning line — over budget, drifting, crossing streams — is red so
+		// it reads from across the desk; the rest stays dim.
+		const warn = !slot.note && (slot.overCap || !!slot.drift || !!slot.overlap);
+		parts.push(text(12, 106, detail, `${mono} font-size="${fonts.detail}" fill="${warn ? colors.needs_input : colors.dim}"`));
 	}
 	const word = statusWord(slot);
 	if (slot.host === "unknown" && status !== "unknown") {
@@ -346,10 +349,24 @@ function pinGlyph(): string {
 	return `<g fill="${colors.dim}"><circle cx="17" cy="17" r="4"/><rect x="16" y="20" width="2" height="8"/></g>`;
 }
 
-/** The owner's note wins over the transient detail; a pending permission drops its prefix, the red word already says it. */
-export function detailLine(slot: Pick<Slot, "detail" | "note" | "pending">): string {
+/**
+ * The owner's note wins over everything; then what the daemon wants a person
+ * to see — over budget, drifting, another session on the same files — then
+ * the transient detail. A pending permission drops its prefix, the red word
+ * already says it.
+ */
+export function detailLine(slot: Pick<Slot, "detail" | "note" | "pending" | "drift" | "overlap" | "spend" | "overCap">): string {
 	if (slot.note) {
 		return truncate(slot.note, detailChars);
+	}
+	if (slot.overCap) {
+		return truncate(`over budget ${slot.spend ?? ""}`.trim(), detailChars);
+	}
+	if (slot.drift) {
+		return truncate(slot.drift, detailChars);
+	}
+	if (slot.overlap) {
+		return truncate(`⚠ ${slot.overlap}`, detailChars);
 	}
 	let detail = slot.detail ?? "";
 	if (slot.pending && detail.startsWith("permission: ")) {

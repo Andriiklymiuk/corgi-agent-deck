@@ -31,6 +31,13 @@ export interface Slot {
 	note?: string;
 	/** Working but silent for 12 minutes or more. */
 	stuck?: boolean;
+	/** The first reason the daemon thinks a person should look. */
+	drift?: string;
+	/** The first other session on the same files — "api·2 on registry.go". */
+	overlap?: string;
+	/** What the session has cost, in one word — "52.3M" — and whether it passed its budget. */
+	spend?: string;
+	overCap?: boolean;
 }
 
 export interface SessionContext {

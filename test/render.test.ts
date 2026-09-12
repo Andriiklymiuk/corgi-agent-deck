@@ -62,6 +62,10 @@ describe("renderSvg", () => {
 	it("lets the owner's note replace the detail", () => {
 		expect(detailLine({ detail: "Bash go test", note: "waiting on review" })).toBe("waiting on rev…");
 		expect(detailLine({ detail: "Bash go test" })).toBe("Bash go test");
+		expect(detailLine({ detail: "Bash go test", overCap: true, spend: "52.3M" })).toBe("over budget 52…");
+		expect(detailLine({ detail: "Bash go test", drift: "context 91%" })).toBe("context 91%");
+		expect(detailLine({ detail: "Bash go test", overlap: "api·2 on registry.go" })).toBe("⚠ api·2 on reg…");
+		expect(detailLine({ detail: "Bash go test", note: "mine", overCap: true })).toBe("mine");
 		expect(detailLine({ detail: "permission: Bash go test", pending: "Bash" })).toBe("Bash go test");
 		expect(detailLine({ detail: "permission: Bash go test" })).toBe("permission: Ba…"); // no pending: shown as corgi wrote it
 		expect(detailLine({})).toBe("");
