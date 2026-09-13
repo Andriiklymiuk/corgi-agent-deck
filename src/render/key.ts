@@ -68,7 +68,7 @@ export function keyCacheKey(input: KeyInput, frame: Frame): string {
 		return `empty|${input.label ?? ""}|${input.pinned ? 1 : 0}`;
 	}
 	const pulse = input.status === "needs_input" ? frame : 0;
-	return [input.label, input.status, input.profile, input.pinned ? 1 : 0, input.detail ?? "", elapsedBucket(input.elapsedS), input.host ?? "", pulse, input.context ?? 0, input.pending ?? "", input.note ?? "", input.stuck ? 1 : 0, input.drift ?? "", input.overlap ?? "", input.spend ?? "", input.overCap ? 1 : 0].join("|");
+	return [input.label, input.status, input.profile, input.pinned ? 1 : 0, input.detail ?? "", elapsedBucket(input.elapsedS), input.host ?? "", pulse, input.context ?? 0, input.pending ?? "", input.risk ?? "", input.note ?? "", input.stuck ? 1 : 0, input.drift ?? "", input.overlap ?? "", input.spend ?? "", input.overCap ? 1 : 0].join("|");
 }
 
 export function renderKey(input: KeyInput, frame: Frame): string {
@@ -115,9 +115,10 @@ function sessionBody(slot: Slot, frame: Frame): string {
 	}
 	const detail = detailLine(slot);
 	if (detail) {
-		// A warning line — over budget, drifting, crossing streams — is red so
-		// it reads from across the desk; the rest stays dim.
-		const warn = !slot.note && (slot.overCap || !!slot.drift || !!slot.overlap);
+		// A warning line — over budget, drifting, crossing streams, a
+		// destructive permission — is red so it reads from across the desk;
+		// the rest stays dim.
+		const warn = !slot.note && (slot.overCap || !!slot.drift || !!slot.overlap || slot.risk === "destructive");
 		parts.push(text(12, 106, detail, `${mono} font-size="${fonts.detail}" fill="${warn ? colors.needs_input : colors.dim}"`));
 	}
 	const word = statusWord(slot);
@@ -179,10 +180,11 @@ function pagerBody(overflow: number, hiddenNeeds: number, frame: Frame): string 
 /** The talk key's three looks. */
 export type TalkState = "idle" | "rec" | "off";
 
-/** A permission prompt the talk key can answer: the tool and the one word about its input. */
+/** A permission prompt the talk key can answer: the tool, the one word about its input, and what it would do. */
 export interface Approve {
 	tool: string;
 	subject?: string;
+	risk?: string;
 }
 
 export function renderTalkKey(state: TalkState, approve?: Approve): string {
@@ -203,15 +205,22 @@ export function renderTalkKey(state: TalkState, approve?: Approve): string {
 	return toDataUri(svg(body));
 }
 
-/** Red, with the tool and its subject: press allows, a hold denies. */
+/**
+ * The tool and its subject: press allows, a hold denies. The tint says
+ * what allowing does — amber for a read, red for a write, and a
+ * destructive one says so in the foot, so a glance is enough to know
+ * whether to look before pressing.
+ */
 function approveBody(approve: Approve): string {
+	const destructive = approve.risk === "destructive";
+	const tint = approve.risk === "reads" ? colors.working : colors.needs_input;
 	return [
-		`<rect width="${size}" height="${size}" fill="${colors.needs_input}" opacity="0.22"/>`,
-		`<rect width="${size}" height="5" fill="${colors.needs_input}"/>`,
+		`<rect width="${size}" height="${size}" fill="${tint}" opacity="0.22"/>`,
+		`<rect width="${size}" height="5" fill="${tint}"/>`,
 		text(72, 60, "ALLOW", `font-size="28" font-weight="700" letter-spacing="1" fill="${colors.text}" text-anchor="middle"`),
-		text(72, 86, truncate(approve.tool, 12), `font-size="${fonts.word}" font-weight="600" fill="${colors.needs_input}" text-anchor="middle"`),
+		text(72, 86, truncate(approve.tool, 12), `font-size="${fonts.word}" font-weight="600" fill="${tint}" text-anchor="middle"`),
 		approve.subject ? text(72, 106, truncate(approve.subject, detailChars), `${mono} font-size="${fonts.detail}" fill="${colors.text}" text-anchor="middle"`) : "",
-		text(72, 130, "HOLD TO DENY", `font-size="11" font-weight="700" letter-spacing="1" fill="${colors.dim}" text-anchor="middle"`),
+		text(72, 130, destructive ? "DESTRUCTIVE · HOLD TO DENY" : "HOLD TO DENY", `font-size="11" font-weight="700" letter-spacing="1" fill="${destructive ? colors.needs_input : colors.dim}" text-anchor="middle"`),
 	].join("");
 }
 
@@ -355,7 +364,7 @@ function pinGlyph(): string {
  * the transient detail. A pending permission drops its prefix, the red word
  * already says it.
  */
-export function detailLine(slot: Pick<Slot, "detail" | "note" | "pending" | "drift" | "overlap" | "spend" | "overCap">): string {
+export function detailLine(slot: Pick<Slot, "detail" | "note" | "pending" | "risk" | "drift" | "overlap" | "spend" | "overCap">): string {
 	if (slot.note) {
 		return truncate(slot.note, detailChars);
 	}
@@ -371,6 +380,9 @@ export function detailLine(slot: Pick<Slot, "detail" | "note" | "pending" | "dri
 	let detail = slot.detail ?? "";
 	if (slot.pending && detail.startsWith("permission: ")) {
 		detail = detail.slice("permission: ".length);
+	}
+	if (slot.pending && slot.risk === "destructive") {
+		detail = `⚠ ${detail}`;
 	}
 	return truncate(detail, detailChars);
 }

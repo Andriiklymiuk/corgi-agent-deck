@@ -29,6 +29,7 @@ describe("renderSvg", () => {
 		// A long detail still ends inside the key.
 		expect(detailLine({ detail: "Claude needs your permission to use Bash" })).toBe("Claude needs y…");
 		expect(detailLine({ detail: "Edit registry.go" })).toBe("Edit registry.…");
+		expect(detailLine({ detail: "permission: Bash rm -rf build", pending: "Bash", risk: "destructive" })).toBe("⚠ Bash rm -rf …");
 		// Without a chip the elapsed text hugs the right margin.
 		expect(renderSvg(slot(1), 0)).toContain('x="132" y="24"');
 	});
@@ -183,6 +184,14 @@ describe("talk key with a permission pending", () => {
 		expect(decodeURIComponent(renderTalkKey("off", { tool: "Bash" }))).toContain(">OFF<");
 		expect(decodeURIComponent(renderTalkKey("idle", { tool: "Edit" }))).not.toContain('y="106"');
 		expect(decodeURIComponent(renderTalkKey("idle", { tool: "<b>" }))).toContain("&lt;b&gt;");
+	});
+
+	it("tints by the risk word: amber for a read, red for a write, and says destructive", () => {
+		expect(decodeURIComponent(renderTalkKey("idle", { tool: "Read", risk: "reads" }))).toContain('fill="#F5A623" opacity="0.22"');
+		expect(decodeURIComponent(renderTalkKey("idle", { tool: "Edit", risk: "writes" }))).toContain('fill="#E5484D" opacity="0.22"');
+		const svg = decodeURIComponent(renderTalkKey("idle", { tool: "Bash", subject: "rm -rf build", risk: "destructive" }));
+		expect(svg).toContain("DESTRUCTIVE · HOLD TO DENY");
+		expect(svg).toContain('fill="#E5484D" opacity="0.22"');
 	});
 });
 

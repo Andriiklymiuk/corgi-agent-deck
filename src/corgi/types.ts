@@ -27,6 +27,8 @@ export interface Slot {
 	context?: number;
 	/** Tool of the permission prompt waiting, while status is needs_input. */
 	pending?: string;
+	/** What that tool would do — reads, writes, destructive — from corgi 2.21.1 up. */
+	risk?: string;
 	/** The owner's own line (`corgi agent note`). */
 	note?: string;
 	/** Working but silent for 12 minutes or more. */
@@ -52,6 +54,8 @@ export interface SessionContext {
 export interface Pending {
 	tool: string;
 	subject?: string;
+	/** reads, writes or destructive; absent on an older corgi. */
+	risk?: string;
 	at: string;
 }
 
