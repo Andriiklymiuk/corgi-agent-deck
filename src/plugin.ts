@@ -1,6 +1,7 @@
 import streamDeck from "@elgato/streamdeck";
 
 import { BudgetAction } from "./actions/budget";
+import { MuteAction } from "./actions/mute";
 import { PromptAction } from "./actions/prompt";
 import { SlotAction } from "./actions/slot";
 import { sendKeystroke, TalkAction, typeText } from "./actions/talk";
@@ -38,11 +39,13 @@ let panelSend = { key: "enter", delayMs: 1500 };
 const talk = new TalkAction({ watcher, corgi, log, sendKeystroke, lastFocused: () => slot.lastFocused(), chord: () => chord, panelChord: () => panelChord, panelSend: () => panelSend });
 const prompt = new PromptAction({ watcher, corgi, log, typeText, lastFocused: () => slot.lastFocused() });
 const budget = new BudgetAction({ watcher, corgi, log, openUrl: (url) => streamDeck.system.openUrl(url), sendToPropertyInspector: (payload) => streamDeck.ui.sendToPropertyInspector(payload) });
+const mute = new MuteAction({ watcher, corgi, log });
 
 streamDeck.actions.registerAction(slot);
 streamDeck.actions.registerAction(talk);
 streamDeck.actions.registerAction(prompt);
 streamDeck.actions.registerAction(budget);
+streamDeck.actions.registerAction(mute);
 
 // The pulse for keys that need a person: one timer for the whole board,
 // running only while such a key is on screen.
@@ -104,6 +107,7 @@ watcher.on("board", (board) => {
 	talk.onBoard(board);
 	prompt.redraw();
 	budget.redraw();
+	mute.redraw();
 	syncPulse();
 	syncTicker();
 	void syncBoardSize();
@@ -114,6 +118,7 @@ watcher.on("daemon", (running) => {
 	talk.redraw();
 	prompt.redraw();
 	budget.redraw();
+	mute.redraw();
 	syncPulse();
 	syncTicker();
 });

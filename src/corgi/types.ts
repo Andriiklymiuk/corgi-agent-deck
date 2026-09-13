@@ -37,6 +37,8 @@ export interface Slot {
 	drift?: string;
 	/** The first other session on the same files — "api·2 on registry.go". */
 	overlap?: string;
+	/** Main having moved under the branch, in one line (corgi 2.22): "main moved 12 · conflicts in api.go". */
+	behind?: string;
 	/** What the session has cost, in one word — "52.3M" — and whether it passed its budget. */
 	spend?: string;
 	overCap?: boolean;
@@ -155,6 +157,8 @@ export interface Board {
 	noticeAt?: string;
 	/** Every account the sessions run under, with its limits. */
 	accounts?: Account[];
+	/** Until when nothing rings (corgi agent mute, 2.22); absent when it rings. */
+	mutedUntil?: string;
 }
 
 /** What `corgi agent sessions --json` prints. */

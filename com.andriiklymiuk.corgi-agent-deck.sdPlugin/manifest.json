@@ -1,6 +1,6 @@
 {
 	"Name": "Corgi Agent Deck",
-	"Version": "0.5.1.0",
+	"Version": "0.6.0.0",
 	"Author": "Andrii Klymiuk",
 	"Actions": [
 		{
@@ -60,6 +60,22 @@
 			"Icon": "imgs/actions/slot/icon",
 			"Tooltip": "One Claude account's usage: a ring for the five-hour window, a bar for the seven-day one, and when it resets. Blue when a session under it hit the limit, red when the window will run out first. Press to open corgi's dashboard.",
 			"PropertyInspectorPath": "ui/budget.html",
+			"Controllers": [
+				"Keypad"
+			],
+			"States": [
+				{
+					"Image": "imgs/actions/slot/key",
+					"TitleAlignment": "middle"
+				}
+			],
+			"UserTitleEnabled": false
+		},
+		{
+			"Name": "Mute",
+			"UUID": "com.andriiklymiuk.corgi-agent-deck.mute",
+			"Icon": "imgs/actions/slot/icon",
+			"Tooltip": "Nothing rings for an hour: no toast, no phone push, no permission ping — the board goes on. Press again to ring again. Set from the phone or corgi agent mute, it shows here too.",
 			"Controllers": [
 				"Keypad"
 			],
