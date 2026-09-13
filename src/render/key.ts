@@ -68,7 +68,7 @@ export function keyCacheKey(input: KeyInput, frame: Frame): string {
 		return `empty|${input.label ?? ""}|${input.pinned ? 1 : 0}`;
 	}
 	const pulse = input.status === "needs_input" ? frame : 0;
-	return [input.label, input.status, input.profile, input.pinned ? 1 : 0, input.detail ?? "", elapsedBucket(input.elapsedS), input.host ?? "", pulse, input.context ?? 0, input.pending ?? "", input.risk ?? "", input.note ?? "", input.stuck ? 1 : 0, input.drift ?? "", input.overlap ?? "", input.spend ?? "", input.overCap ? 1 : 0].join("|");
+	return [input.label, input.status, input.profile, input.pinned ? 1 : 0, input.detail ?? "", elapsedBucket(input.elapsedS), input.host ?? "", pulse, input.context ?? 0, input.pending ?? "", input.risk ?? "", input.behind ?? "", input.note ?? "", input.stuck ? 1 : 0, input.drift ?? "", input.overlap ?? "", input.spend ?? "", input.overCap ? 1 : 0].join("|");
 }
 
 export function renderKey(input: KeyInput, frame: Frame): string {
@@ -118,7 +118,7 @@ function sessionBody(slot: Slot, frame: Frame): string {
 		// A warning line — over budget, drifting, crossing streams, a
 		// destructive permission — is red so it reads from across the desk;
 		// the rest stays dim.
-		const warn = !slot.note && (slot.overCap || !!slot.drift || !!slot.overlap || slot.risk === "destructive");
+		const warn = !slot.note && (slot.overCap || !!slot.drift || !!slot.overlap || slot.risk === "destructive" || (!!slot.behind && slot.behind.includes("conflicts")));
 		parts.push(text(12, 106, detail, `${mono} font-size="${fonts.detail}" fill="${warn ? colors.needs_input : colors.dim}"`));
 	}
 	const word = statusWord(slot);
@@ -364,7 +364,7 @@ function pinGlyph(): string {
  * the transient detail. A pending permission drops its prefix, the red word
  * already says it.
  */
-export function detailLine(slot: Pick<Slot, "detail" | "note" | "pending" | "risk" | "drift" | "overlap" | "spend" | "overCap">): string {
+export function detailLine(slot: Pick<Slot, "detail" | "note" | "pending" | "risk" | "drift" | "overlap" | "spend" | "overCap" | "behind">): string {
 	if (slot.note) {
 		return truncate(slot.note, detailChars);
 	}
@@ -376,6 +376,9 @@ export function detailLine(slot: Pick<Slot, "detail" | "note" | "pending" | "ris
 	}
 	if (slot.overlap) {
 		return truncate(`⚠ ${slot.overlap}`, detailChars);
+	}
+	if (slot.behind && slot.behind.includes("conflicts")) {
+		return truncate(slot.behind, detailChars);
 	}
 	let detail = slot.detail ?? "";
 	if (slot.pending && detail.startsWith("permission: ")) {
@@ -497,4 +500,31 @@ export class KeyCache {
 		}
 		return { key, image };
 	}
+}
+
+/** The mute key: a bell, crossed out with the minutes left while muted. */
+export function renderMuteKey(mutedUntil: string | undefined, running: boolean, now = new Date()): string {
+	const until = mutedUntil ? Date.parse(mutedUntil) : NaN;
+	const muted = Number.isFinite(until) && until > now.getTime();
+	const dim = !running;
+	const color = muted ? colors.needs_input : dim ? colors.dim : colors.text;
+	const left = muted ? Math.max(1, Math.round((until - now.getTime()) / 60000)) : 0;
+	const word = !running ? "OFF" : muted ? (left >= 60 ? `${Math.round(left / 60)}h left` : `${left}m left`) : "MUTE 1H";
+	const body = [
+		muted ? `<rect width="${size}" height="5" fill="${colors.needs_input}"/>` : "",
+		`<g fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"${dim ? ' opacity="0.5"' : ""}>`,
+		// A bell: the dome, the lip, the clapper.
+		`<path d="M48 84 v-22 a24 24 0 0 1 48 0 v22 l8 10 h-64 z"/><path d="M64 104 a8 8 0 0 0 16 0"/>`,
+		muted ? `<path d="M40 40 L104 104" stroke="${colors.needs_input}" stroke-width="7"/>` : "",
+		"</g>",
+		text(72, 128, word, `font-size="${fonts.word}" font-weight="700" letter-spacing="1" fill="${color}" text-anchor="middle"`),
+	].join("");
+	return toDataUri(svg(body));
+}
+
+/** The mute key's cache key: the state and the minute. */
+export function muteCacheKey(mutedUntil: string | undefined, running: boolean, now = new Date()): string {
+	const until = mutedUntil ? Date.parse(mutedUntil) : NaN;
+	const muted = Number.isFinite(until) && until > now.getTime();
+	return [running ? 1 : 0, muted ? Math.round((until - now.getTime()) / 60000) : -1].join("|");
 }

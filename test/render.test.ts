@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import type { BoardReport, Slot } from "../src/corgi/types";
-import { budgetBody, budgetColor, chipLetters, contextBar, contextColor, detailLine, escape, fonts, formatElapsed, formatResetTime, KeyCache, keyCacheKey, offKey, promptFace, renderKey, renderPromptKey, renderSvg, renderTalkKey, statusWord, wrapLabel } from "../src/render/key";
+import { budgetBody, budgetColor, chipLetters, contextBar, contextColor, detailLine, escape, fonts, formatElapsed, formatResetTime, KeyCache, keyCacheKey, muteCacheKey, offKey, promptFace, renderKey, renderMuteKey, renderPromptKey, renderSvg, renderTalkKey, statusWord, wrapLabel } from "../src/render/key";
 
 const fixture = JSON.parse(readFileSync(new URL("../fixtures/sessions.json", import.meta.url), "utf8")) as BoardReport;
 const slot = (index: number): Slot => fixture.slots[index];
@@ -258,5 +258,26 @@ describe("budget key", () => {
 		const week = new Date(now.getTime() + 3 * 24 * 3600 * 1000);
 		expect(formatResetTime(week.toISOString(), now)).toMatch(/^(Sun|Mon|Tue|Wed|Thu|Fri|Sat) \d{1,2}:\d{2}(am|pm)$/);
 		expect(formatResetTime("nope", now)).toBe("");
+	});
+});
+
+describe("mute key", () => {
+	it("crosses the bell out with the minutes left, and says MUTE 1H when it rings", () => {
+		const now = new Date("2026-09-13T10:00:00Z");
+		expect(decodeURIComponent(renderMuteKey(undefined, true, now))).toContain(">MUTE 1H<");
+		expect(decodeURIComponent(renderMuteKey("2026-09-13T10:25:00Z", true, now))).toContain(">25m left<");
+		expect(decodeURIComponent(renderMuteKey("2026-09-13T12:00:00Z", true, now))).toContain(">2h left<");
+		expect(decodeURIComponent(renderMuteKey("2026-09-13T09:00:00Z", true, now))).toContain(">MUTE 1H<");
+		expect(decodeURIComponent(renderMuteKey(undefined, false, now))).toContain(">OFF<");
+		expect(muteCacheKey("2026-09-13T10:25:00Z", true, now)).toBe("1|25");
+		expect(muteCacheKey(undefined, true, now)).toBe("1|-1");
+	});
+});
+
+describe("main moved on a key", () => {
+	it("is the red line when there are conflicts, and stays out of the way otherwise", () => {
+		expect(detailLine({ detail: "Edit x.go", behind: "main moved 12 · conflicts in api.go" })).toBe("main moved 12 …");
+		expect(detailLine({ detail: "Edit x.go", behind: "main moved 3" })).toBe("Edit x.go");
+		expect(detailLine({ detail: "Edit x.go", note: "mine", behind: "main moved 12 · conflicts in api.go" })).toBe("mine");
 	});
 });
