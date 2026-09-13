@@ -22,7 +22,7 @@ jobs:
 
   release:
     # A release is a version bump on main: when package.json names a version
-    # with no tag yet, tag it, pack the plugin with that version and publish.
+    # with no release yet, tag it, pack the plugin with that version and publish.
     # The .streamDeckPlugin is what a person double-clicks or uploads to the
     # Elgato Marketplace (docs/MARKETPLACE.md); no secret beyond GITHUB_TOKEN.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -44,12 +44,17 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          if git rev-parse -q --verify "refs/tags/v$VERSION" >/dev/null; then
+          # Released means the GitHub release exists, not only the tag: a
+          # tag pushed by a run that then lost the release call to a GitHub
+          # outage is finished by the next run.
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
             echo "v$VERSION is already released"
             echo "new=false" >> "$GITHUB_OUTPUT"
           else
             echo "new=true" >> "$GITHUB_OUTPUT"
           fi
+        env:
+          GH_TOKEN: ${{ github.token }}
       - if: steps.version.outputs.new == 'true'
         run: npm run build
       - if: steps.version.outputs.new == 'true'
@@ -64,8 +69,10 @@ jobs:
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git tag "v${{ steps.version.outputs.version }}"
-          git push origin "v${{ steps.version.outputs.version }}"
+          if ! git ls-remote --exit-code --tags origin "v${{ steps.version.outputs.version }}" >/dev/null; then
+            git tag "v${{ steps.version.outputs.version }}"
+            git push origin "v${{ steps.version.outputs.version }}"
+          fi
       - if: steps.version.outputs.new == 'true'
         uses: softprops/action-gh-release@v2
         with:
