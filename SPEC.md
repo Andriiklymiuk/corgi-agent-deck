@@ -75,6 +75,7 @@ interface Slot {
   focusAt?: string;           // when the last focus attempt was made (success or failure)
   context?: number;           // context window used, percent; 0/absent = unknown
   pending?: string;           // tool of the permission prompt waiting, only while status is needs_input
+  risk?: string;              // what that tool would do: reads | writes | destructive (corgi 2.21.1+)
   note?: string;              // the owner's line (`corgi agent note`); outlives any detail
   stuck?: boolean;            // working but silent for 12+ minutes
 }
@@ -90,7 +91,7 @@ interface Session {                // only what a plugin might want; the file ha
           shellPid?: number; terminal?: string; connected?: boolean };
   focusError?: string; focusAt?: string;
   context?: { tokens: number; window: number; percent: number; model?: string; at: string };
-  pending?: { tool: string; subject?: string; at: string };   // subject: the one safe word about the input ("go test", "registry.go")
+  pending?: { tool: string; subject?: string; risk?: string; at: string };   // subject: the one safe word about the input ("go test", "registry.go"); risk: reads | writes | destructive
   title?: string; note?: string; stuck?: boolean;
 }
 
@@ -273,7 +274,7 @@ Canvas 144×144 (Mini keys are 80×80; Stream Deck scales). Type is sized to be 
 | elapsed | right-aligned at `x=132 y=24` (`x=98` when a chip is shown) | 12 px mono, `#8F98A8` (`12s`, `3m`, `1h04m`) |
 | profile chip | `rect 104,12 28×16 r3`, text centred at `118,24` | 10 px mono, 2 letters uppercase (`WK` for `work`), hidden for `default` |
 | label | `x=12`, baseline `y=72` (one line) or `y=58` and `y=85` (two lines) | 24 px semibold, `#F2F4F7` |
-| detail | `x=12 y=106` | 13 px mono, `#8F98A8`; the `note` when set, else `detail` (a pending permission drops its `permission: ` prefix); ellipsized at 15 characters |
+| detail | `x=12 y=106` | 13 px mono, `#8F98A8`; the `note` when set, else `detail` (a pending permission drops its `permission: ` prefix; a destructive one gets ⚠ and goes red); ellipsized at 15 characters |
 | status word | `x=12 y=128` | 14 px bold, letter-spacing 1, status colour; `SLOW` for a stuck working session |
 | context bar | `rect 0,140 144×4` | filled to `context` %; grey `#6E6E6E` ≤ 60, amber > 60, red > 85, over a 25 % track; nothing when unknown |
 | ground | whole key | `#000000` |
@@ -284,7 +285,7 @@ Canvas 144×144 (Mini keys are 80×80; Stream Deck scales). Type is sized to be 
 - Empty: ground only, a faint `+` (34 px, 35 % opacity) centred.
 - Off (no daemon): ground, label `corgi`, word `OFF` in dim gray, bar off.
 - **Escape every string** (`& < > "`) before it enters the SVG. Labels and details come from directory names and Claude's own messages.
-- Cache by `keyCacheKey` (label, status, profile, pinned, detail, elapsed bucket, host, pulse, context, pending, note, stuck); bucket `elapsedS` to 5 s so a working key redraws at most every 5 s.
+- Cache by `keyCacheKey` (label, status, profile, pinned, detail, elapsed bucket, host, pulse, context, pending, risk, note, stuck); bucket `elapsedS` to 5 s so a working key redraws at most every 5 s.
 - Pulse: `needs_input` alternates frames 0/1 at 1 Hz (bar and word at full vs 45 % opacity). One `setInterval` for the whole plugin, running only while any visible slot is `needs_input`.
 
 ### 4.5 `actions/slot.ts`

@@ -311,7 +311,7 @@ export function approveFor(board: Board | undefined, lastFocused: string | undef
 	if (!session?.pending || session.status !== "needs_input") {
 		return undefined;
 	}
-	return { sessionId: session.id, tool: session.pending.tool, subject: session.pending.subject };
+	return { sessionId: session.id, tool: session.pending.tool, subject: session.pending.subject, risk: session.pending.risk };
 }
 
 export function answerCommand(sessionId: string, answer: Answer): string[] {

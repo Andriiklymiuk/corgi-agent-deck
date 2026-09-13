@@ -77,7 +77,7 @@ When a session needs you but has no key of its own, the `+N` key turns red and s
 
 ## Approving a permission
 
-When the session in front of you (the same pick as Talk, below) waits on a permission, the **Talk** key turns red: **ALLOW**, the tool and what it wants (`Bash` · `go test`). Press to allow, hold to deny; the key runs `corgi agent answer <session> allow|deny`, which focuses the session and presses Claude Code's own keys. corgi refuses to allow a Bash command it recognises as risky (`rm`, `sudo`, `--force`, …) — the key flashes ⚠ and you go look. Sessions in the Claude Code panel take no keystrokes from corgi, so there the key presses them itself after the focus lands (Accessibility for the Stream Deck app, as for dictation). With nothing pending it is the ordinary Talk key.
+When the session in front of you (the same pick as Talk, below) waits on a permission, the **Talk** key turns into **ALLOW**, the tool and what it wants (`Bash` · `go test`). Its tint is the risk corgi read off the tool's input: amber for a read, red for a write, and a destructive one (`rm -rf`, `--force`, a dropped table) says **DESTRUCTIVE** in the foot and puts ⚠ on the session key's own line — look before you press. Press to allow, hold to deny; the key runs `corgi agent answer <session> allow|deny`, which focuses the session and presses Claude Code's own keys. corgi refuses to allow a Bash command it recognises as risky (`rm`, `sudo`, `--force`, …) — the key flashes ⚠ and you go look. Sessions in the Claude Code panel take no keystrokes from corgi, so there the key presses them itself after the focus lands (Accessibility for the Stream Deck app, as for dictation). With nothing pending it is the ordinary Talk key.
 
 ## Prompt keys
 

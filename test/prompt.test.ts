@@ -42,7 +42,7 @@ describe("answer", () => {
 
 	it("finds the permission the talk key would answer", () => {
 		// The fixture's front session is acme-api, waiting on Bash.
-		expect(approveFor(fixture, undefined)).toEqual({ sessionId: "5b1c2e7a-acme", tool: "Bash", subject: "go test" });
+		expect(approveFor(fixture, undefined)).toEqual({ sessionId: "5b1c2e7a-acme", tool: "Bash", subject: "go test", risk: "reads" });
 		// Another session in front: nothing to answer there.
 		expect(approveFor({ ...fixture, frontSession: "9f30d1aa-web" }, undefined)).toBeUndefined();
 		// A pending left on a session that moved on is not answerable.
