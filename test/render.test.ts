@@ -280,4 +280,11 @@ describe("main moved on a key", () => {
 		expect(detailLine({ detail: "Edit x.go", behind: "main moved 3" })).toBe("Edit x.go");
 		expect(detailLine({ detail: "Edit x.go", note: "mine", behind: "main moved 12 · conflicts in api.go" })).toBe("mine");
 	});
+
+	it("says what the daemon says about the pull request, unless a prompt waits (corgi 2.23)", () => {
+		expect(detailLine({ detail: "Edit x.go", standing: "ready to merge" })).toBe("ready to merge");
+		expect(detailLine({ detail: "Edit x.go", standing: "working" })).toBe("Edit x.go");
+		expect(detailLine({ detail: "permission: Bash", pending: "Bash", standing: "checks failing" })).toBe("Bash");
+		expect(detailLine({ detail: "Edit x.go", note: "mine", standing: "ready to merge" })).toBe("mine");
+	});
 });
