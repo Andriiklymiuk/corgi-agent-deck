@@ -364,7 +364,10 @@ function pinGlyph(): string {
  * the transient detail. A pending permission drops its prefix, the red word
  * already says it.
  */
-export function detailLine(slot: Pick<Slot, "detail" | "note" | "pending" | "risk" | "drift" | "overlap" | "spend" | "overCap" | "behind">): string {
+/** The daemon's words on a pull request worth the detail line — the session's own state is the key's colour. */
+const pullWords = new Set(["ready to merge", "checks failing", "changes requested", "conflicts", "merged"]);
+
+export function detailLine(slot: Pick<Slot, "detail" | "note" | "pending" | "risk" | "drift" | "overlap" | "spend" | "overCap" | "behind" | "standing">): string {
 	if (slot.note) {
 		return truncate(slot.note, detailChars);
 	}
@@ -379,6 +382,9 @@ export function detailLine(slot: Pick<Slot, "detail" | "note" | "pending" | "ris
 	}
 	if (slot.behind && slot.behind.includes("conflicts")) {
 		return truncate(slot.behind, detailChars);
+	}
+	if (slot.standing && pullWords.has(slot.standing) && !slot.pending) {
+		return truncate(slot.standing, detailChars);
 	}
 	let detail = slot.detail ?? "";
 	if (slot.pending && detail.startsWith("permission: ")) {

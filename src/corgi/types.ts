@@ -42,6 +42,8 @@ export interface Slot {
 	/** What the session has cost, in one word — "52.3M" — and whether it passed its budget. */
 	spend?: string;
 	overCap?: boolean;
+	/** Where the session stands in the daemon's one word (corgi 2.23): "ready to merge", "checks failing", "working". */
+	standing?: string;
 }
 
 export interface SessionContext {
