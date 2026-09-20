@@ -68,7 +68,7 @@ export function keyCacheKey(input: KeyInput, frame: Frame): string {
 		return `empty|${input.label ?? ""}|${input.pinned ? 1 : 0}`;
 	}
 	const pulse = input.status === "needs_input" ? frame : 0;
-	return [input.label, input.status, input.profile, input.pinned ? 1 : 0, input.detail ?? "", elapsedBucket(input.elapsedS), input.host ?? "", pulse, input.context ?? 0, input.pending ?? "", input.risk ?? "", input.behind ?? "", input.note ?? "", input.stuck ? 1 : 0, input.drift ?? "", input.overlap ?? "", input.spend ?? "", input.overCap ? 1 : 0].join("|");
+	return [input.label, input.status, input.profile, input.agent ?? "", input.pinned ? 1 : 0, input.detail ?? "", elapsedBucket(input.elapsedS), input.host ?? "", pulse, input.context ?? 0, input.pending ?? "", input.risk ?? "", input.behind ?? "", input.note ?? "", input.stuck ? 1 : 0, input.drift ?? "", input.overlap ?? "", input.spend ?? "", input.overCap ? 1 : 0].join("|");
 }
 
 export function renderKey(input: KeyInput, frame: Frame): string {
@@ -93,6 +93,8 @@ function sessionBody(slot: Slot, frame: Frame): string {
 	const dimAll = status === "gone" ? ' opacity="0.4"' : "";
 	const lines = wrapLabel(slot.label ?? "?");
 	const hasChip = !!slot.profile && slot.profile !== "default";
+	// Another agent wears its name where the profile chip goes, or beside it.
+	const otherAgent = slot.agent && slot.agent !== "claude" ? slot.agent : "";
 	const parts: string[] = [];
 	parts.push(`<g${dimAll}>`);
 	parts.push(`<rect width="${size}" height="5" fill="${color}" opacity="${barOpacity}"/>`);
@@ -102,9 +104,13 @@ function sessionBody(slot: Slot, frame: Frame): string {
 	if (hasChip) {
 		parts.push(chip(slot.profile as string));
 	}
+	if (otherAgent) {
+		parts.push(chip(otherAgent, hasChip ? 72 : 104));
+	}
+	const chips = (hasChip ? 1 : 0) + (otherAgent ? 1 : 0);
 	const elapsed = formatElapsed(slot.elapsedS);
 	if (elapsed) {
-		parts.push(text(hasChip ? 98 : 132, 24, elapsed, `${mono} font-size="${fonts.elapsed}" fill="${colors.dim}" text-anchor="end"`));
+		parts.push(text(chips === 2 ? 66 : chips === 1 ? 98 : 132, 24, elapsed, `${mono} font-size="${fonts.elapsed}" fill="${colors.dim}" text-anchor="end"`));
 	}
 	const labelAttrs = (s: string): string => `font-size="${labelFont(s)}" font-weight="600" fill="${colors.text}"`;
 	if (lines.length === 1) {
@@ -348,9 +354,9 @@ export function chipLetters(profile: string): string {
 	return clean[0] + clean[clean.length - 1];
 }
 
-function chip(profile: string): string {
-	const letters = escape(chipLetters(profile));
-	return `<rect x="104" y="12" width="28" height="16" rx="3" fill="none" stroke="${colors.dim}" stroke-width="1.2"/>` + text(118, 24, letters, `${mono} font-size="10" font-weight="500" fill="${colors.dim}" text-anchor="middle"`);
+function chip(name: string, x: number = 104): string {
+	const letters = escape(chipLetters(name));
+	return `<rect x="${x}" y="12" width="28" height="16" rx="3" fill="none" stroke="${colors.dim}" stroke-width="1.2"/>` + text(x + 14, 24, letters, `${mono} font-size="10" font-weight="500" fill="${colors.dim}" text-anchor="middle"`);
 }
 
 function pinGlyph(): string {
