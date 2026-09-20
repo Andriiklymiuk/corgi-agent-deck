@@ -20,6 +20,17 @@ describe("renderSvg", () => {
 		expect(svg).toContain('x="98" y="24"');
 	});
 
+	it("wears the agent's chip when it is not Claude Code", () => {
+		const svg = renderSvg({ ...slot(1), agent: "codex" }, 0);
+		expect(svg).toContain(">CX<");
+		expect(svg).toContain('x="98" y="24"'); // elapsed moves left of the chip
+		const both = renderSvg({ ...slot(0), agent: "codex" }, 0);
+		expect(both).toContain(">WK<");
+		expect(both).toContain('x="72" y="12"'); // the agent chip beside the profile's
+		expect(renderSvg({ ...slot(1), agent: "claude" }, 0)).not.toContain(">CE<");
+		expect(keyCacheKey({ ...slot(1), agent: "codex" }, 0)).not.toBe(keyCacheKey(slot(1), 0));
+	});
+
 	it("sets type large enough to read from a desk", () => {
 		expect(fonts).toEqual({ label: 24, labelSmall: 20, word: 14, detail: 13, elapsed: 12 });
 		const svg = renderSvg(slot(0), 0);

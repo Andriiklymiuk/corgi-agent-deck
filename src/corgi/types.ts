@@ -16,6 +16,8 @@ export interface Slot {
 	sessionId?: string;
 	label?: string;
 	profile?: string;
+	/** The agent running it when it is not Claude Code (corgi 2.29): "codex". */
+	agent?: string;
 	status?: Status;
 	pinned?: boolean;
 	elapsedS?: number;
