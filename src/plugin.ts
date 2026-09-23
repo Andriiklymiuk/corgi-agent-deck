@@ -95,7 +95,7 @@ async function syncBoardSize(): Promise<void> {
 		return;
 	}
 	sizedTo = want;
-	log.info(`deck shows ${want} keys; board has ${board.size} — resizing`);
+	log.info(`deck shows ${want} keys; board has ${board.size} - resizing`);
 	const result = await corgi.run(["agent", "board", "--slots", String(want)]);
 	if (!result.ok) {
 		log.warn(`resize failed: ${result.stderr.trim()}`);
@@ -113,7 +113,7 @@ watcher.on("board", (board) => {
 	void syncBoardSize();
 });
 watcher.on("daemon", (running) => {
-	log.info(running ? "corgi agent is running" : "corgi agent is not running — keys go dim until it is");
+	log.info(running ? "corgi agent is running" : "corgi agent is not running - keys go dim until it is");
 	slot.redraw();
 	talk.redraw();
 	prompt.redraw();
@@ -144,4 +144,4 @@ try {
 	log.warn(String((error as Error).message));
 }
 await watcher.start();
-log.info(`board at ${watcher.boardPath() ?? "(unknown — corgi did not answer)"}`);
+log.info(`board at ${watcher.boardPath() ?? "(unknown - corgi did not answer)"}`);

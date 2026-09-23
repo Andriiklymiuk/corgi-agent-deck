@@ -43,7 +43,7 @@ describe("Corgi", () => {
 	});
 
 	it("tells a daemon that is down from a command that failed", async () => {
-		const deps = fakeDeps([candidates[0]], () => ({ stdout: "", stderr: "corgi agent is not running — `corgi agent serve`\n", code: 1 }));
+		const deps = fakeDeps([candidates[0]], () => ({ stdout: "", stderr: "corgi agent is not running - `corgi agent serve`\n", code: 1 }));
 		const corgi = new Corgi(deps);
 		expect(await corgi.runJson(["agent", "sessions", "--json"])).toEqual({ daemonDown: true });
 		const other = fakeDeps([candidates[0]], () => ({ stdout: "", stderr: "boom", code: 2 }));

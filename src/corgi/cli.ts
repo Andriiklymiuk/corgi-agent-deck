@@ -3,9 +3,9 @@ import { access } from "node:fs/promises";
 
 /**
  * Running corgi. A plugin launched by the Stream Deck app has the Dock's PATH,
- * which rarely includes Homebrew, so the binary is resolved once — an
+ * which rarely includes Homebrew, so the binary is resolved once - an
  * explicit override, the two Homebrew prefixes, then whatever the user's
- * login shell finds — and cached. Commands run with an argument array, never
+ * login shell finds - and cached. Commands run with an argument array, never
  * a shell string: session ids and labels are data, not syntax.
  */
 
@@ -75,7 +75,7 @@ export class Corgi {
 		}
 		const found = await resolveCorgi(this.deps, this.override);
 		if (!found) {
-			throw new Error("corgi not found — install it (brew install andriiklymiuk/homebrew-tools/corgi) or set its path in the key's settings");
+			throw new Error("corgi not found - install it (brew install andriiklymiuk/homebrew-tools/corgi) or set its path in the key's settings");
 		}
 		this.resolved = found;
 		return found;
