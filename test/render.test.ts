@@ -253,7 +253,7 @@ describe("budget key", () => {
 
 	it("has an unknown and an off look", () => {
 		const unknown = budgetBody({ profile: "default" }, now);
-		expect(unknown).toContain(">—<");
+		expect(unknown).toContain(">-<");
 		expect(unknown).toContain("no usage yet");
 		expect(unknown).not.toContain("stroke-dasharray");
 		const off = budgetBody({ profile: "default", off: true }, now);

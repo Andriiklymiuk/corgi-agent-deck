@@ -29,7 +29,7 @@ export interface Slot {
 	context?: number;
 	/** Tool of the permission prompt waiting, while status is needs_input. */
 	pending?: string;
-	/** What that tool would do — reads, writes, destructive — from corgi 2.21.1 up. */
+	/** What that tool would do - reads, writes, destructive - from corgi 2.21.1 up. */
 	risk?: string;
 	/** The owner's own line (`corgi agent note`). */
 	note?: string;
@@ -37,11 +37,11 @@ export interface Slot {
 	stuck?: boolean;
 	/** The first reason the daemon thinks a person should look. */
 	drift?: string;
-	/** The first other session on the same files — "api·2 on registry.go". */
+	/** The first other session on the same files - "api·2 on registry.go". */
 	overlap?: string;
 	/** Main having moved under the branch, in one line (corgi 2.22): "main moved 12 · conflicts in api.go". */
 	behind?: string;
-	/** What the session has cost, in one word — "52.3M" — and whether it passed its budget. */
+	/** What the session has cost, in one word - "52.3M" - and whether it passed its budget. */
 	spend?: string;
 	overCap?: boolean;
 	/** Where the session stands in the daemon's one word (corgi 2.23): "ready to merge", "checks failing", "working". */

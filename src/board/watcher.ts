@@ -13,7 +13,7 @@ import type { Board, BoardReport } from "../corgi/types";
  * --json`); after that the file's directory is watched. The daemon writes
  * the file by rename, so one publish is one event. A slow poll is the safety
  * net, and a daemon that is down is reported as such and retried with
- * backoff — never started.
+ * backoff - never started.
  */
 
 export interface WatcherEvents {
@@ -154,7 +154,7 @@ export class BoardWatcher extends EventEmitter<WatcherEvents> {
 			text = await readFile(this.path, "utf8");
 		} catch {
 			// Not written yet, or the daemon cleaned up: ask corgi whether the
-			// daemon is up — unless a retry is already on its way.
+			// daemon is up - unless a retry is already on its way.
 			if (!this.retry) {
 				void this.refreshFromCli();
 			}

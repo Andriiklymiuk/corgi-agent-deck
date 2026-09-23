@@ -4,7 +4,7 @@ import type { Slot, Status } from "../corgi/types";
  * One key as an SVG data URI, 144×144 (a Mini's 80×80 keys are scaled by the
  * Stream Deck app). Pure and synchronous: the layout is fixed, text width
  * comes from an advance table, and everything that reaches the SVG is
- * escaped — labels are directory names and details are Claude's own words.
+ * escaped - labels are directory names and details are Claude's own words.
  */
 
 export const colors = {
@@ -121,8 +121,8 @@ function sessionBody(slot: Slot, frame: Frame): string {
 	}
 	const detail = detailLine(slot);
 	if (detail) {
-		// A warning line — over budget, drifting, crossing streams, a
-		// destructive permission — is red so it reads from across the desk;
+		// A warning line - over budget, drifting, crossing streams, a
+		// destructive permission - is red so it reads from across the desk;
 		// the rest stays dim.
 		const warn = !slot.note && (slot.overCap || !!slot.drift || !!slot.overlap || slot.risk === "destructive" || (!!slot.behind && slot.behind.includes("conflicts")));
 		parts.push(text(12, 106, detail, `${mono} font-size="${fonts.detail}" fill="${warn ? colors.needs_input : colors.dim}"`));
@@ -213,7 +213,7 @@ export function renderTalkKey(state: TalkState, approve?: Approve): string {
 
 /**
  * The tool and its subject: press allows, a hold denies. The tint says
- * what allowing does — amber for a read, red for a write, and a
+ * what allowing does - amber for a read, red for a write, and a
  * destructive one says so in the foot, so a glance is enough to know
  * whether to look before pressing.
  */
@@ -304,7 +304,7 @@ export function budgetBody(face: BudgetFace, now = new Date()): string {
 		face.limited ? `<rect width="${size}" height="5" fill="${colors.limited}"/>` : "",
 		`<circle cx="72" cy="60" r="${radius}" fill="none" stroke="${colors.stale}" stroke-opacity="0.3" stroke-width="8"/>`,
 		arc > 0 ? `<circle cx="72" cy="60" r="${radius}" fill="none" stroke="${color}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${arc.toFixed(1)} ${circumference.toFixed(1)}" transform="rotate(-90 72 60)"/>` : "",
-		text(72, 67, known ? `${five}%` : "—", `font-size="20" font-weight="700" fill="${known ? colors.text : colors.dim}" text-anchor="middle"`),
+		text(72, 67, known ? `${five}%` : "-", `font-size="20" font-weight="700" fill="${known ? colors.text : colors.dim}" text-anchor="middle"`),
 		text(12, 106, "7d", `${mono} font-size="11" fill="${colors.dim}"`),
 		text(132, 106, known ? `${seven}%` : "", `${mono} font-size="11" fill="${colors.dim}" text-anchor="end"`),
 		`<rect x="30" y="100" width="76" height="6" rx="3" fill="${colors.stale}" opacity="0.3"/>`,
@@ -366,11 +366,11 @@ function pinGlyph(): string {
 
 /**
  * The owner's note wins over everything; then what the daemon wants a person
- * to see — over budget, drifting, another session on the same files — then
+ * to see - over budget, drifting, another session on the same files - then
  * the transient detail. A pending permission drops its prefix, the red word
  * already says it.
  */
-/** The daemon's words on a pull request worth the detail line — the session's own state is the key's colour. */
+/** The daemon's words on a pull request worth the detail line - the session's own state is the key's colour. */
 const pullWords = new Set(["ready to merge", "checks failing", "changes requested", "conflicts", "merged"]);
 
 export function detailLine(slot: Pick<Slot, "detail" | "note" | "pending" | "risk" | "drift" | "overlap" | "spend" | "overCap" | "behind" | "standing">): string {

@@ -29,7 +29,7 @@ describe("outcomeOf", () => {
 	});
 
 	it("treats a fresh board notice as the command being refused", () => {
-		const refused = withSession({}, { notice: "acme-api asks to run \"rm -rf\" — look at it before allowing", noticeAt: "2026-09-08T05:00:00.5Z" });
+		const refused = withSession({}, { notice: "acme-api asks to run \"rm -rf\" - look at it before allowing", noticeAt: "2026-09-08T05:00:00.5Z" });
 		expect(outcomeOf(refused, id, since)).toEqual({ kind: "error", message: refused.notice });
 		expect(outcomeOf(withSession({}, { notice: "stale", noticeAt: "2026-09-08T04:00:00Z" }), id, since)).toBeUndefined();
 	});

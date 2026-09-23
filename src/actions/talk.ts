@@ -120,7 +120,7 @@ export class TalkAction extends SingletonAction {
 	private async dictate(key: KeyAction): Promise<void> {
 		const sessionId = pickSession(this.deps.watcher.current(), this.deps.lastFocused());
 		if (!sessionId) {
-			this.deps.log.info("talk: no session to dictate into — no Claude Code session is running");
+			this.deps.log.info("talk: no session to dictate into - no Claude Code session is running");
 			await key.showAlert().catch(() => undefined);
 			return;
 		}

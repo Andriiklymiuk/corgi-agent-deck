@@ -1,4 +1,4 @@
-# Corgi Agent Deck — implementation spec
+# Corgi Agent Deck - implementation spec
 
 A Stream Deck plugin whose keys are a live view of every Claude Code session on this Mac. Press a key and that session's window and terminal tab come to the front. Long-press to pin. An empty key opens a new session. Nothing to configure per session.
 
@@ -40,7 +40,7 @@ The daemon writes the file atomically (write a `.tmp` sibling, rename over), so 
 
 `daemon.json` in the same directory (`{"pid": N, "commands": true, ...}`) exists only while the daemon runs. `daemonRunning` in the `--json` output is derived from it; you don't need to read it yourself.
 
-### 1.2 `sessions.json` — the board
+### 1.2 `sessions.json` - the board
 
 ```ts
 interface Board {
@@ -315,7 +315,7 @@ One page, global settings, shared by every instance:
 
 ## 5. No-daemon state
 
-When `daemonRunning` is false or the CLI reports the daemon down: render every key as "off", stop the pulse timer, and keep retrying with backoff. A press runs nothing except an immediate re-check. The PI shows "corgi agent is not running — run `corgi agent install` on this Mac". **The plugin never spawns the daemon.**
+When `daemonRunning` is false or the CLI reports the daemon down: render every key as "off", stop the pulse timer, and keep retrying with backoff. A press runs nothing except an immediate re-check. The PI shows "corgi agent is not running - run `corgi agent install` on this Mac". **The plugin never spawns the daemon.**
 
 ---
 
@@ -329,7 +329,7 @@ Use `streamDeck.logger`. Info on: resolved corgi path, board path, board size sy
 
 A second action, `com.andriiklymiuk.corgi-agent-deck.talk`: press to dictate into the session in front (corgi's `frontSession`: the session in the window in front, in its active terminal tab or its panel; else the key you last pressed; else the one that needs you, when exactly one does; else the one that moved last), press again to send. Claude Code's own dictation does the work.
 
-- **Claude Code side** (user setup, documented in README): `/voice tap` once (persists), and in `~/.claude/keybindings.json` bind `voice:pushToTalk` to a chord no terminal claims — `ctrl+y` by default. Tap mode is required: a synthesized keystroke has no key-repeat, so hold mode cannot be triggered from a deck. Needs a Claude.ai login and microphone permission for the terminal app.
+- **Claude Code side** (user setup, documented in README): `/voice tap` once (persists), and in `~/.claude/keybindings.json` bind `voice:pushToTalk` to a chord no terminal claims - `ctrl+y` by default. Tap mode is required: a synthesized keystroke has no key-repeat, so hold mode cannot be triggered from a deck. Needs a Claude.ai login and microphone permission for the terminal app.
 - **Press**: `corgi agent focus <sessionId>`, wait until the next board shows `focusAt` newer than the press with no `focusError` (cap 1.5 s), then `osascript -e 'tell application "System Events" to keystroke "y" using control down'`. Sending keystrokes needs Accessibility for the Stream Deck app (its built-in Hotkey action already uses it).
 - **Feedback**: the key turns red with `REC` after the first press and back to idle when that session's status becomes `working` (transcript submitted) or after two minutes (Claude Code's own recording cap). corgi has no recording event; this is optimistic by design.
 - **Panel sessions**: the Claude Code panel has its own dictation shortcut (`cmd+d` in the webview), so a `vscode-panel` session gets that chord (`talkPanelChord`, default `cmd+d`) instead of the keybindings.json one; the panel's second press only stops recording, so `talkPanelSend` (default `enter`) follows after `talkPanelSendDelayMs` (default 1500).
@@ -341,7 +341,7 @@ A second action, `com.andriiklymiuk.corgi-agent-deck.talk`: press to dictate int
 
 ### 7.2 Budget key
 
-`com.andriiklymiuk.corgi-agent-deck.budget`: one account's usage. Settings: `profile` (a dropdown fed by the plugin from `accounts[]` and the sessions' profiles, through sdpi-components' `datasource` = `getProfiles`) and `profileText` (typed; wins). Face: the profile name top-left; a ring for `limits.fiveHour.percent` with the number inside; a bar for `sevenDay.percent`; `resets 4:10pm` (local time; a weekday when more than a day away) for `fiveHour.resetsAt`. Colour: blue with a blue bar and `LIMIT` when any session under that profile is `limited`; red when `forecast.fiveHour.safe === false`; else white/amber/red by fill (60 / 85). `—` and `no usage yet` before any session under the account has fetched usage; dim `OFF` without the daemon. A press runs `corgi agent status --json` and opens `dashboardUrl` when there is one, else shows ✓.
+`com.andriiklymiuk.corgi-agent-deck.budget`: one account's usage. Settings: `profile` (a dropdown fed by the plugin from `accounts[]` and the sessions' profiles, through sdpi-components' `datasource` = `getProfiles`) and `profileText` (typed; wins). Face: the profile name top-left; a ring for `limits.fiveHour.percent` with the number inside; a bar for `sevenDay.percent`; `resets 4:10pm` (local time; a weekday when more than a day away) for `fiveHour.resetsAt`. Colour: blue with a blue bar and `LIMIT` when any session under that profile is `limited`; red when `forecast.fiveHour.safe === false`; else white/amber/red by fill (60 / 85). `-` and `no usage yet` before any session under the account has fetched usage; dim `OFF` without the daemon. A press runs `corgi agent status --json` and opens `dashboardUrl` when there is one, else shows ✓.
 
 ---
 

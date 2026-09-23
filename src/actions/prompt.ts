@@ -102,13 +102,13 @@ export class PromptAction extends SingletonAction<PromptSettings> {
 		const text = promptText(settings);
 		const enter = promptEnter(settings);
 		if (!text && !enter) {
-			this.deps.log.info("prompt: nothing to send — set the text in the key's settings");
+			this.deps.log.info("prompt: nothing to send - set the text in the key's settings");
 			await key.showAlert().catch(() => undefined);
 			return;
 		}
 		const sessionId = pickSession(this.deps.watcher.current(), this.deps.lastFocused());
 		if (!sessionId) {
-			this.deps.log.info("prompt: no session to send to — no Claude Code session is running");
+			this.deps.log.info("prompt: no session to send to - no Claude Code session is running");
 			await key.showAlert().catch(() => undefined);
 			return;
 		}

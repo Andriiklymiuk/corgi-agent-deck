@@ -75,7 +75,7 @@
 			"Name": "Mute",
 			"UUID": "com.andriiklymiuk.corgi-agent-deck.mute",
 			"Icon": "imgs/actions/slot/icon",
-			"Tooltip": "Nothing rings for an hour: no toast, no phone push, no permission ping — the board goes on. Press again to ring again. Set from the phone or corgi agent mute, it shows here too.",
+			"Tooltip": "Nothing rings for an hour: no toast, no phone push, no permission ping - the board goes on. Press again to ring again. Set from the phone or corgi agent mute, it shows here too.",
 			"Controllers": [
 				"Keypad"
 			],
