@@ -118,8 +118,8 @@ Slot invariants you can rely on:
 
 | status | when | bar colour | word |
 |---|---|---|---|
-| `working` | model running or a tool executing | amber `#F5A623` | WORKING, or **SLOW** when `stuck` |
-| `needs_input` | permission prompt, a question, an API failure | red `#E5484D`, **pulsing** | NEEDS YOU |
+| `working` | model running or a tool executing | indigo `#8A94F5` (amber `#F5A623` when `stuck`) | WORKING, or **SLOW** when `stuck` |
+| `needs_input` | permission prompt, a question, an API failure | amber `#F5A623`, **pulsing** | NEEDS YOU |
 | `done` | turn finished, waiting for a prompt | green `#30A46C` | DONE |
 | `limited` | the account hit its usage limit; `detail` says when it resets | blue `#5B8DEF` | LIMIT |
 | `stale` | alive, no events for 30 min | gray `#6E6E6E` | IDLE |

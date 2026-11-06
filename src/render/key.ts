@@ -12,13 +12,16 @@ export const colors = {
 	promptGround: "#1C2029",
 	text: "#F2F4F7",
 	dim: "#8F98A8",
-	working: "#F5A623",
-	needs_input: "#E5484D",
+	// One meaning across corgi's apps: indigo is working, amber needs you, red is broken.
+	working: "#8A94F5",
+	needs_input: "#F5A623",
 	done: "#30A46C",
 	stale: "#6E6E6E",
 	gone: "#6E6E6E",
 	unknown: "#6E6E6E",
-	limited: "#5B8DEF",
+	limited: "#E5484D",
+	alarm: "#E5484D",
+	caution: "#F5A623",
 } as const;
 
 export const words: Record<Status, string> = {
@@ -87,7 +90,7 @@ function svg(body: string, ground: string = colors.ground): string {
 
 function sessionBody(slot: Slot, frame: Frame): string {
 	const status = slot.status ?? "unknown";
-	const color = colors[status];
+	const color = status === "working" && slot.stuck ? colors.caution : colors[status];
 	const pulsing = status === "needs_input" && frame === 1;
 	const barOpacity = pulsing ? 0.45 : 1;
 	const dimAll = status === "gone" ? ' opacity="0.4"' : "";
@@ -125,7 +128,7 @@ function sessionBody(slot: Slot, frame: Frame): string {
 		// destructive permission - is red so it reads from across the desk;
 		// the rest stays dim.
 		const warn = !slot.note && (slot.overCap || !!slot.drift || !!slot.overlap || slot.risk === "destructive" || (!!slot.behind && slot.behind.includes("conflicts")));
-		parts.push(text(12, 106, detail, `${mono} font-size="${fonts.detail}" fill="${warn ? colors.needs_input : colors.dim}"`));
+		parts.push(text(12, 106, detail, `${mono} font-size="${fonts.detail}" fill="${warn ? colors.alarm : colors.dim}"`));
 	}
 	const word = statusWord(slot);
 	if (slot.host === "unknown" && status !== "unknown") {
@@ -155,7 +158,7 @@ export function statusWord(slot: Pick<Slot, "status" | "stuck">): string {
  * the status word, so only the near-full warning gets a colour.
  */
 export function contextColor(percent: number): string {
-	return percent > 85 ? colors.needs_input : colors.stale;
+	return percent > 85 ? colors.alarm : colors.stale;
 }
 
 /** A 4 px bar along the bottom, filled to the context window used. Nothing when unknown. */
@@ -198,12 +201,12 @@ export function renderTalkKey(state: TalkState, approve?: Approve): string {
 		return toDataUri(svg(approveBody(approve)));
 	}
 	const dim = state === "off";
-	const color = state === "rec" ? colors.needs_input : dim ? colors.dim : colors.text;
+	const color = state === "rec" ? colors.alarm : dim ? colors.dim : colors.text;
 	const body = [
-		state === "rec" ? `<rect width="${size}" height="5" fill="${colors.needs_input}"/>` : "",
+		state === "rec" ? `<rect width="${size}" height="5" fill="${colors.alarm}"/>` : "",
 		// A microphone: capsule, stand, base.
 		`<g fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round"${dim ? ' opacity="0.5"' : ""}>`,
-		`<rect x="60" y="30" width="24" height="44" rx="12" fill="${state === "rec" ? colors.needs_input : "none"}"/>`,
+		`<rect x="60" y="30" width="24" height="44" rx="12" fill="${state === "rec" ? colors.alarm : "none"}"/>`,
 		`<path d="M48 62 a24 24 0 0 0 48 0"/><path d="M72 86 v14"/><path d="M58 102 h28"/>`,
 		"</g>",
 		text(72, 128, state === "rec" ? "REC · PRESS TO SEND" : state === "off" ? "OFF" : "TALK", `font-size="${fonts.word}" font-weight="700" letter-spacing="1" fill="${color}" text-anchor="middle"`),
@@ -219,7 +222,7 @@ export function renderTalkKey(state: TalkState, approve?: Approve): string {
  */
 function approveBody(approve: Approve): string {
 	const destructive = approve.risk === "destructive";
-	const tint = approve.risk === "reads" ? colors.working : colors.needs_input;
+	const tint = approve.risk === "reads" ? colors.caution : colors.alarm;
 	return [
 		`<rect width="${size}" height="${size}" fill="${tint}" opacity="0.22"/>`,
 		`<rect width="${size}" height="5" fill="${tint}"/>`,
@@ -230,14 +233,37 @@ function approveBody(approve: Approve): string {
 	].join("");
 }
 
-/** The first word or two of a prompt, as the key shows it. */
-export function promptFace(promptText: string): string {
-	const tokens = promptText.trim().split(/\s+/).filter(Boolean);
-	if (tokens.length === 0) {
-		return "…";
+/** The start of a prompt in up to two lines, enough to tell the keys apart. */
+export function promptFace(promptText: string): string[] {
+	const words = promptText.trim().split(/\s+/).filter(Boolean);
+	if (words.length === 0) {
+		return ["…"];
 	}
-	const pair = tokens.slice(0, 2).join(" ");
-	return truncate(pair.length <= hardWrapAt ? pair : tokens[0], hardWrapAt);
+	const lines = ["", ""];
+	let line = 0;
+	let used = 0;
+	for (const word of words) {
+		const joined = lines[line] ? `${lines[line]} ${word}` : word;
+		if (joined.length <= hardWrapAt) {
+			lines[line] = joined;
+			used++;
+		} else if (line === 0 && lines[0]) {
+			line = 1;
+			lines[1] = truncate(word, hardWrapAt);
+			used++;
+		} else {
+			break;
+		}
+	}
+	if (!lines[0]) {
+		return [truncate(words[0], hardWrapAt)];
+	}
+	if (used < words.length && lines[1] && !lines[1].endsWith("…")) {
+		// The ellipsis takes a cell: a whole word goes rather than half of one.
+		const room = lines[1].length < hardWrapAt ? lines[1] : lines[1].replace(/\s+\S+$/, "");
+		lines[1] = `${room.slice(0, hardWrapAt - 1)}…`;
+	}
+	return lines.filter(Boolean);
 }
 
 export type PromptState = "idle" | "off";
@@ -248,7 +274,9 @@ export function renderPromptKey(promptText: string, enter: boolean, state: Promp
 	const body = [
 		`<g${dim ? ' opacity="0.4"' : ""}>`,
 		text(12, 34, "›", `font-size="30" font-weight="700" fill="${colors.dim}"`),
-		text(72, 88, promptFace(promptText), `font-size="22" font-weight="600" fill="${colors.text}" text-anchor="middle"`),
+		...promptFace(promptText).map((line, i, all) =>
+			text(72, (all.length === 1 ? 88 : 74) + i * 26, line, `font-size="22" font-weight="600" fill="${colors.text}" text-anchor="middle"`),
+		),
 		text(72, 128, dim ? "OFF" : enter ? "SEND" : "TYPE", `font-size="${fonts.word}" font-weight="700" letter-spacing="1" fill="${colors.dim}" text-anchor="middle"`),
 		"</g>",
 	].join("");
@@ -269,7 +297,7 @@ export interface BudgetFace {
 	off?: boolean;
 }
 
-/** The ring's colour: blue when limited, red when the window will run out, else by fill. */
+/** The ring's colour: red when limited or when the window will run out, else by fill. */
 export function budgetColor(face: BudgetFace): string {
 	if (face.off) {
 		return colors.dim;
@@ -278,10 +306,10 @@ export function budgetColor(face: BudgetFace): string {
 		return colors.limited;
 	}
 	if (face.unsafe) {
-		return colors.needs_input;
+		return colors.alarm;
 	}
 	const pct = face.fiveHour ?? 0;
-	return pct > 85 ? colors.needs_input : pct > 60 ? colors.working : colors.text;
+	return pct > 85 ? colors.alarm : pct > 60 ? colors.caution : colors.text;
 }
 
 export function renderBudgetKey(face: BudgetFace, now = new Date()): string {
@@ -519,15 +547,15 @@ export function renderMuteKey(mutedUntil: string | undefined, running: boolean, 
 	const until = mutedUntil ? Date.parse(mutedUntil) : NaN;
 	const muted = Number.isFinite(until) && until > now.getTime();
 	const dim = !running;
-	const color = muted ? colors.needs_input : dim ? colors.dim : colors.text;
+	const color = muted ? colors.alarm : dim ? colors.dim : colors.text;
 	const left = muted ? Math.max(1, Math.round((until - now.getTime()) / 60000)) : 0;
 	const word = !running ? "OFF" : muted ? (left >= 60 ? `${Math.round(left / 60)}h left` : `${left}m left`) : "MUTE 1H";
 	const body = [
-		muted ? `<rect width="${size}" height="5" fill="${colors.needs_input}"/>` : "",
+		muted ? `<rect width="${size}" height="5" fill="${colors.alarm}"/>` : "",
 		`<g fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"${dim ? ' opacity="0.5"' : ""}>`,
 		// A bell: the dome, the lip, the clapper.
 		`<path d="M48 84 v-22 a24 24 0 0 1 48 0 v22 l8 10 h-64 z"/><path d="M64 104 a8 8 0 0 0 16 0"/>`,
-		muted ? `<path d="M40 40 L104 104" stroke="${colors.needs_input}" stroke-width="7"/>` : "",
+		muted ? `<path d="M40 40 L104 104" stroke="${colors.alarm}" stroke-width="7"/>` : "",
 		"</g>",
 		text(72, 128, word, `font-size="${fonts.word}" font-weight="700" letter-spacing="1" fill="${color}" text-anchor="middle"`),
 	].join("");

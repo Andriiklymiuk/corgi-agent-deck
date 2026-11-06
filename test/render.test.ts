@@ -11,7 +11,7 @@ const slot = (index: number): Slot => fixture.slots[index];
 describe("renderSvg", () => {
 	it("draws a session key with bar, label, detail, word and chip", () => {
 		const svg = renderSvg(slot(0), 0);
-		expect(svg).toContain('height="5" fill="#E5484D"');
+		expect(svg).toContain('height="5" fill="#F5A623"');
 		expect(svg).toContain(">acme-api<");
 		expect(svg).toContain("NEEDS YOU");
 		expect(svg).toContain(">WK<"); // the work profile chip
@@ -168,7 +168,7 @@ describe("cache", () => {
 		expect(keyCacheKey({ index: 5, pager: true, overflow: 2 }, 1)).toBe("pager|2|0|0");
 		const hot = renderSvg({ index: 5, pager: true, overflow: 2, hiddenNeeds: 1 }, 0);
 		expect(hot).toContain("1 NEED YOU");
-		expect(hot).toContain('fill="#E5484D"');
+		expect(hot).toContain('fill="#F5A623"');
 		expect(keyCacheKey(offKey, 1)).toBe("off");
 	});
 
@@ -207,19 +207,26 @@ describe("talk key with a permission pending", () => {
 });
 
 describe("prompt key", () => {
-	it("shows the first word or two of the text", () => {
-		expect(promptFace("run the tests and fix what fails")).toBe("run the");
-		expect(promptFace("continue")).toBe("continue");
-		expect(promptFace("/compact")).toBe("/compact");
-		expect(promptFace("commit with a good message")).toBe("commit");
-		expect(promptFace("supercalifragilistic")).toBe("supercal…");
-		expect(promptFace("   ")).toBe("…");
+	it("shows the start of the text in up to two lines", () => {
+		expect(promptFace("run the tests and fix what fails")).toEqual(["run the", "tests…"]);
+		expect(promptFace("commit with a good message")).toEqual(["commit", "with a…"]);
+		expect(promptFace("/compact")).toEqual(["/compact"]);
+		expect(promptFace("continue please")).toEqual(["continue", "please"]);
+		expect(promptFace("run tests")).toEqual(["run tests"]);
+		expect(promptFace("internationalization now")).toEqual(["internat…"]);
+		expect(promptFace("   ")).toEqual(["…"]);
+		expect(promptFace("continue")).toEqual(["continue"]);
+		expect(promptFace("/compact")).toEqual(["/compact"]);
+		expect(promptFace("commit with a good message")).toEqual(["commit", "with a…"]);
+		expect(promptFace("supercalifragilistic")).toEqual(["supercal…"]);
+		expect(promptFace("   ")).toEqual(["…"]);
 	});
 
 	it("draws on a dark key and says whether Enter follows", () => {
 		const send = decodeURIComponent(renderPromptKey("run the tests", true));
 		expect(send).toContain('fill="#1C2029"');
 		expect(send).toContain(">run the<");
+		expect(send).toContain(">tests<");
 		expect(send).toContain(">SEND<");
 		expect(decodeURIComponent(renderPromptKey("run the tests", false))).toContain(">TYPE<");
 		expect(decodeURIComponent(renderPromptKey("x", true, "off"))).toContain(">OFF<");
@@ -239,16 +246,16 @@ describe("budget key", () => {
 		expect(svg).toContain(">default<");
 	});
 
-	it("goes blue when limited, red when the window runs out first, amber and red by fill", () => {
+	it("goes red when limited or when the window runs out first, amber and red by fill", () => {
 		expect(budgetColor({ profile: "p", fiveHour: 20 })).toBe("#F2F4F7");
 		expect(budgetColor({ profile: "p", fiveHour: 61 })).toBe("#F5A623");
 		expect(budgetColor({ profile: "p", fiveHour: 86 })).toBe("#E5484D");
 		expect(budgetColor({ profile: "p", fiveHour: 20, unsafe: true })).toBe("#E5484D");
-		expect(budgetColor({ profile: "p", fiveHour: 99, limited: true })).toBe("#5B8DEF"); // limited wins
+		expect(budgetColor({ profile: "p", fiveHour: 99, limited: true })).toBe("#E5484D"); // limited wins
 		expect(budgetColor({ profile: "p", off: true })).toBe("#8F98A8");
 		const limited = budgetBody({ profile: "work", fiveHour: 100, sevenDay: 64, limited: true }, now);
 		expect(limited).toContain(">LIMIT<");
-		expect(limited).toContain('height="5" fill="#5B8DEF"');
+		expect(limited).toContain('height="5" fill="#E5484D"');
 	});
 
 	it("has an unknown and an off look", () => {

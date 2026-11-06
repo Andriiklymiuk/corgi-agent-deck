@@ -1,6 +1,6 @@
 {
     "name": "corgi-agent-deck",
-    "version": "0.7.1",
+    "version": "0.8.0",
     "private": true,
     "description": "Stream Deck plugin for corgi's Claude Code session board",
     "scripts": {
@@ -10,24 +10,25 @@
         "typecheck": "tsc --noEmit -p .",
         "validate": "streamdeck validate com.andriiklymiuk.corgi-agent-deck.sdPlugin",
         "pack": "streamdeck pack com.andriiklymiuk.corgi-agent-deck.sdPlugin",
-        "showcase": "tsx scripts/showcase.ts && scripts/capture.sh"
+        "showcase": "tsx scripts/showcase.ts && scripts/capture.sh",
+        "video": "scripts/video.sh"
     },
     "type": "module",
     "devDependencies": {
-        "@elgato/cli": "^1.9.0",
-        "@rollup/plugin-commonjs": "^29.0.2",
-        "@rollup/plugin-node-resolve": "^15.2.2",
-        "@rollup/plugin-terser": "^1.0.0",
-        "@rollup/plugin-typescript": "^12.1.0",
-        "@tsconfig/node20": "^20.1.2",
-        "@types/node": "~24.1.0",
-        "rollup": "^4.0.2",
-        "tslib": "^2.6.2",
+        "@elgato/cli": "1.10.4",
+        "@rollup/plugin-commonjs": "29.0.3",
+        "@rollup/plugin-node-resolve": "15.3.1",
+        "@rollup/plugin-terser": "1.0.2",
+        "@rollup/plugin-typescript": "12.3.1",
+        "@tsconfig/node20": "20.1.10",
+        "@types/node": "24.1.0",
+        "rollup": "4.67.5",
+        "tslib": "2.9.1",
         "tsx": "4.23.13",
-        "typescript": "^5.2.2",
+        "typescript": "5.9.3",
         "vitest": "4.1.11"
     },
     "dependencies": {
-        "@elgato/streamdeck": "^2.1.2"
+        "@elgato/streamdeck": "2.1.2"
     }
 }

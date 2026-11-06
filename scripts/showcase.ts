@@ -49,15 +49,15 @@ for (const name of ["talk-idle", "talk-rec", "talk-off", "talk-allow", "prompt-t
 
 const inline = (name: string): string => `data:image/svg+xml;utf8,${encodeURIComponent(svg[name])}`;
 
-/** A key with a physical bezel; frame picks the pulse frame for red keys. */
+/** A key with a physical bezel; frame picks the pulse frame for keys that need you. */
 const key = (name: string, frame: number): string => `<div class="key"><img src="${inline(svg[`${name}${frame}`] ? `${name}${frame}` : name)}"></div>`;
 
 type Copy = { title: string; text: string; legend?: boolean };
 const copies: Record<string, Copy> = {
 	mk2: { title: "Corgi Agent Deck", text: "Every Claude Code session on your Mac on its own key, its context window along the bottom. Press to jump to its window and terminal tab. Hold to pin. Talk answers a permission or dictates; Prompt sends a canned line; Budget shows your usage.", legend: true },
-	mini: { title: "Fits a Mini", text: "Five sessions and a Talk key. When more sessions run than keys, a +N key pages through the rest and turns red when one of them needs you.", legend: true },
+	mini: { title: "Fits a Mini", text: "Five sessions and a Talk key. When more sessions run than keys, a +N key pages through the rest and turns amber when one of them needs you.", legend: true },
 	talk: { title: "Talk, Prompt, Budget", text: "Talk turns red while the session in front waits on a permission: press to allow, hold to deny. Press once to speak, again to send. Prompt keys type a line - continue, run the tests, /compact. Budget is the account's five-hour ring and seven-day bar.", legend: false },
-	states: { title: "Six states, one glance", text: "Amber while it works, SLOW when it has gone quiet. Red and pulsing when it needs you: a permission prompt, a question, an API failure. Green when done. Blue with the reset time when the account hit its limit. Grey when idle or closed. The bar along the bottom is the context window.", legend: true },
+	states: { title: "Six states, one glance", text: "Indigo while it works, amber SLOW when it has gone quiet. Amber and pulsing when it needs you: a permission prompt, a question, an API failure. Green when done. Red with the reset time when the account hit its limit. Grey when idle or closed. The bar along the bottom is the context window.", legend: true },
 };
 
 const html = (view: string, frame: number, elapsedShift: number, height = 1080): string => {
@@ -89,10 +89,10 @@ const html = (view: string, frame: number, elapsedShift: number, height = 1080):
     <h1>${copy.title}</h1>
     <p>${copy.text}</p>
     <div class="legend" ${copy.legend ? "" : 'style="display:none"'}>
-      <span><b style="background:#F5A623"></b>working</span>
-      <span><b style="background:#E5484D"></b>needs you</span>
+      <span><b style="background:#8A94F5"></b>working</span>
+      <span><b style="background:#F5A623"></b>needs you</span>
       <span><b style="background:#30A46C"></b>done</span>
-      <span><b style="background:#5B8DEF"></b>limit · resets</span>
+      <span><b style="background:#E5484D"></b>limit · resets</span>
       <span><b style="background:#6E6E6E"></b>idle / closed</span>
     </div>
   </div>
